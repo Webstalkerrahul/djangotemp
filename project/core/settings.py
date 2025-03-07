@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+import dj_database_url
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +28,7 @@ SECRET_KEY = 'django-insecure-*p-gc2k_^-f$j!z%rsn91h-)zsjl6c_h%j%-9(mhy95tm&iug=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*','djangotemp-8sn5.onrender.com']
 
 
 # Application definition
@@ -38,12 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 ]
-
-import os
-import dj_database_url
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 DATABASE_URL = "postgresql://admin:AXZSpOcFpIk45Au9uq2BFDTq8tq7Y9EC@dpg-cv5ibgin91rc7399cgh0-a.oregon-postgres.render.com/dinedesk"
 
