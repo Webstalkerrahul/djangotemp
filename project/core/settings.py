@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',  # Whitenoise for serving static files
 
     # Your apps here
+    'vendor',
 ]
 
 MIDDLEWARE = [
