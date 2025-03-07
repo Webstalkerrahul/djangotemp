@@ -33,6 +33,9 @@ INSTALLED_APPS = [
 
     # Your apps here
     'vendor',
+    'product',
+    'billing',
+    'company',
 ]
 
 MIDDLEWARE = [

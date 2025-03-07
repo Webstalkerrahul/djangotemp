@@ -15,3 +15,18 @@ class Vendor(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+
+class Plant(models.Model):
+    name = models.CharField(max_length=200, blank=True)
+    email = models.EmailField(unique=True, blank=True)
+    phone = models.CharField(max_length=15, blank=True)
+    address = models.TextField(blank=True)
+    vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['-created_at']
