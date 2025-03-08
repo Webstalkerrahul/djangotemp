@@ -70,7 +70,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database configuration (PostgreSQL on Render)
-DATABASE_URL = "postgresql://admin:AXZSpOcFpIk45Au9uq2BFDTq8tq7Y9EC@dpg-cv5ibgin91rc7399cgh0-a.oregon-postgres.render.com/dinedesk"
+DATABASE_URL = "postgresql://postgres:R@hul@88578@db.vsqvjsipzgkkmukqnkhm.supabase.co:5432/postgres"
 
 DATABASES = {
     'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)

@@ -1,6 +1,6 @@
 from django.urls import path
-from . import views  # Import your views
+from .views import generate_invoice
 
 urlpatterns = [
-    path('invoice/', views.invoice_view, name='invoice'),  # Example URL for invoice
+    path('invoice/', generate_invoice, name='generate_invoice'),  # Example URL for invoice
 ]

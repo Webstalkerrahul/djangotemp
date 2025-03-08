@@ -1,0 +1,57 @@
+from billing.models import Billing, Invoice
+from vendor.models import Vendor, Plant
+from product.models import Product
+from company.models import Company
+from decimal import Decimal
+from num2words import num2words
+
+def get_vendor():
+    return Vendor.objects.all()
+
+def get_product():
+    return Product.objects.all()
+
+def get_company():
+    return Company.objects.all()
+
+def get_plant():
+    return Plant.objects.all()
+
+def get_billing():
+    return Billing.objects.all()
+
+def add_data_billing(invoice_number, chalan_number, rate, quantity, date_str, vendor_id, plant_id, product_id, company_id):
+    try:
+        billing =  Billing.objects.create(invoice_number=invoice_number, chalan_number=chalan_number, rate=rate, quantity=quantity, date=date_str, vendor_id=vendor_id, plant_id=plant_id, product_id=product_id, company_id=company_id)
+
+        rate = Decimal(rate)  # Convert rate to Decimal
+        quantity = Decimal(quantity)  # Convert quantity to Decimal
+
+        # Calculate net_amount
+        net_amount = rate * quantity + rate * Decimal('0.025') + rate * Decimal('0.025')
+
+        # Convert net_amount to words
+        words = num2words(net_amount, to="currency", lang="en_IN")
+        # Create the Invoice object
+        invoice = Invoice.objects.create(
+            invoice_number=invoice_number,
+            rate=rate,
+            quantity=quantity,
+            date=date_str,
+            vendor=vendor_id,
+            plant=plant_id,
+            product=product_id,
+            chalan_number=chalan_number,
+            company=company_id,
+            total_amount=rate * quantity,
+            cgst=rate * Decimal('0.025'),
+            sgst=rate * Decimal('0.025'),
+            net_amount=net_amount,
+            amount_in_words=words
+        )
+        # Save the object to the database
+        return billing
+    except Exception as e:
+        print(f"Error adding data: {e}")
+        return None
+
