@@ -70,7 +70,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 # Database configuration (PostgreSQL on Render)
-DATABASE_URL = "postgresql://postgres:R@hul@88578@db.vsqvjsipzgkkmukqnkhm.supabase.co:5432/postgres"
+DATABASE_URL = "postgresql://postgres.vsqvjsipzgkkmukqnkhm:R@hul@88578@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres"
 
 DATABASES = {
     'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
