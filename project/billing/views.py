@@ -7,6 +7,7 @@ import os
 import base64
 from django.conf import settings
 from core.utils import queries
+from datetime import datetime
 
 def generate_invoice(request):
     # You can add context data here if needed
@@ -38,6 +39,8 @@ def generate_invoice(request):
     return render(request, 'billing.html', {'vendors': vendor, 'products': product, 'company': company, 'plants': plant})
 
 def render_invoice_pdf(invoice):
+    date_obj = datetime.now()
+    formatted_datetime = date_obj.strftime("%d-%m-%Y-%H-%M")
     logo_path = os.path.join(settings.BASE_DIR, 'billing/static', 'logo.png')
     with open(logo_path, "rb") as image_file:
         encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
@@ -91,6 +94,6 @@ def render_invoice_pdf(invoice):
     
     # Return the PDF as a response
     response = HttpResponse(pdf_data, content_type="application/pdf")
-    response["Content-Disposition"] = 'inline; filename="invoice.pdf"'
+    response["Content-Disposition"] = f'inline; filename="invoice-no-{invoice.invoice_number}-{formatted_datetime}.pdf"'
     return response
 
