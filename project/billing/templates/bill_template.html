@@ -98,7 +98,7 @@
                 <p class="font-semibold text-gray-800">{{ invoice.vehicle.number }}</p>
             </div>
             <div>
-                <p class="font-medium text-gray-500">Plan Name.</p>
+                <p class="font-medium text-gray-500">Plant Name.</p>
                 <p class="font-semibold text-gray-800">{{ invoice.plant.name }}</p>
             </div>
         </div>
@@ -124,7 +124,7 @@
                             <td class="py-2 px-2 border-b text-sm text-gray-600">{{ invoice.product.hsn_code}}</td>
                             <td class="py-2 px-2 border-b text-sm text-gray-600 text-right">{{ invoice.quantity}}</td>
                             <td class="py-2 px-2 border-b text-sm text-gray-600 text-right">{{ invoice.rate}}</td>
-                            <td class="py-2 px-2 border-b text-sm text-gray-600 text-right">{{ invoice.total_amount}}</td>
+                            <td class="py-2 px-2 border-b text-sm text-gray-600 text-right">{{ invoice.total_amount|floatformat:0}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -134,19 +134,19 @@
             <div class="mt-4 md:w-1/2 ml-auto">
                 <div class="flex justify-between py-2 text-sm">
                     <span class="font-medium text-gray-600">Subtotal:</span>
-                    <span class="text-gray-800 font-semibold">{{ invoice.total_amount}}</span>
+                    <span class="text-gray-800 font-semibold">{{ invoice.total_amount|floatformat:0}}</span>
                 </div>
                 <div class="flex justify-between py-2 text-sm">
                     <span class="font-medium text-gray-600">CGST @ 2.5%:</span>
-                    <span class="text-gray-800">₹{{ invoice.cgst }}</span>
+                    <span class="text-gray-800">₹{{ invoice.cgst|floatformat:0 }}</span>
                 </div>
                 <div class="flex justify-between py-2 text-sm">
                     <span class="font-medium text-gray-600">SGST @ 2.5%:</span>
-                    <span class="text-gray-800">₹{{ invoice.sgst }}</span>
+                    <span class="text-gray-800">₹{{ invoice.sgst|floatformat:0 }}</span>
                 </div>
                 <div class="flex justify-between py-3 text-lg font-bold border-t border-gray-200 mt-2">
                     <span class="text-gray-700">Total:</span>
-                    <span class="text-blue-600">₹{{ invoice.net_amount }}</span>
+                    <span class="text-blue-600">₹{{ invoice.net_amount|floatformat:0 }}</span>
                 </div>
             </div>
             
