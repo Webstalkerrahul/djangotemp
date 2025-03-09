@@ -32,9 +32,12 @@ def add_data_billing(invoice_number, chalan_number, rate, quantity, date_str, ve
 
         rate = Decimal(rate)  # Convert rate to Decimal
         quantity = Decimal(quantity)  # Convert quantity to Decimal
+        total_amount= rate * quantity
+        cgst=total_amount * Decimal('0.025')
+        sgst=total_amount * Decimal('0.025')
 
         # Calculate net_amount
-        net_amount = rate * quantity + rate * Decimal('0.025') + rate * Decimal('0.025')
+        net_amount = Decimal(total_amount) + cgst + sgst
 
         # Convert net_amount to words
         # words = num2words(net_amount, to="currency", lang="en_IN")
@@ -50,9 +53,9 @@ def add_data_billing(invoice_number, chalan_number, rate, quantity, date_str, ve
             product=product,
             chalan_number=chalan_number,
             company=company,
-            total_amount=rate * quantity,
-            cgst=rate * Decimal('0.025'),
-            sgst=rate * Decimal('0.025'),
+            total_amount=total_amount,
+            cgst=cgst,
+            sgst=sgst,
             net_amount=net_amount,
             amount_in_words=words
         )

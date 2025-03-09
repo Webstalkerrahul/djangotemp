@@ -8,8 +8,11 @@ import base64
 from django.conf import settings
 from core.utils import queries
 from datetime import datetime
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def generate_invoice(request):
+
     # You can add context data here if needed
     if request.method == 'POST':
          # Get form data
