@@ -2,6 +2,7 @@ from django.db import models
 from vendor.models import Vendor, Plant
 from product.models import Product
 from company.models import Company
+from vehicle.models import Vehicle
 
 class Billing(models.Model):
     invoice_number = models.CharField(max_length=100)
@@ -11,6 +12,7 @@ class Billing(models.Model):
     vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT)
     plant = models.ForeignKey(Plant, on_delete=models.PROTECT)
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT,blank=True, null=True)
     chalan_number = models.CharField(max_length=100)
     company = models.ForeignKey(Company, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -25,6 +27,7 @@ class Invoice(models.Model):
     date = models.DateField(auto_now_add=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT,blank=True, null=True)
     plant = models.ForeignKey(Plant, on_delete=models.PROTECT,blank=True, null=True)
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT,blank=True, null=True)
     product = models.ForeignKey(Product, on_delete=models.PROTECT,blank=True, null=True)
     chalan_number = models.CharField(max_length=100,blank=True, null=True)
     company = models.ForeignKey(Company, on_delete=models.PROTECT,blank=True, null=True)

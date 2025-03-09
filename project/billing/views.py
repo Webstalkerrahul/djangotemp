@@ -25,8 +25,9 @@ def generate_invoice(request):
             plant_id = request.POST.get('plant')
             product_id = request.POST.get('product')
             company_id = request.POST.get('company')
+            vehicle_id = request.POST.get('vehicle')
 
-            invoice = queries.add_data_billing(invoice_number, chalan_number, rate, quantity, date_str, vendor_id, plant_id, product_id, company_id)
+            invoice = queries.add_data_billing(invoice_number, chalan_number, rate, quantity, date_str, vendor_id, plant_id, product_id, company_id, vehicle_id)
             if invoice is None:
                 return render(request, 'billing.html', {'error': 'Error adding data'})
             else:
@@ -38,8 +39,9 @@ def generate_invoice(request):
     product = queries.get_product()
     company = queries.get_company()
     plant = queries.get_plant()
+    vehicle = queries.get_vehicle()
 
-    return render(request, 'billing.html', {'vendors': vendor, 'products': product, 'company': company, 'plants': plant})
+    return render(request, 'billing.html', {'vendors': vendor, 'products': product, 'company': company, 'plants': plant, 'vehicles': vehicle})
 
 def render_invoice_pdf(invoice):
     date_obj = datetime.now()
