@@ -66,11 +66,11 @@
                 <h3 class="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-2 mb-3">From</h3>
                 <p class="text-sm text-gray-600">
                     {{ invoice.company.name }}<br>
-                    {{ invoice.company.gst_details }}<br>
+                    {{ invoice.company.address }}<br>
+                    GST: {{ invoice.company.gst_details }}<br>
                     {% if invoice.company.email %}
                         Email: {{invoice.company.email}}<br>
                     {% endif %}
-                    Phone: {{ invoice.company.phone_number }}
                 </p>
             </div>
             <div>
@@ -78,7 +78,7 @@
                 <p class="text-sm text-gray-600">
                     {{ invoice.vendor.name }}<br>
                     {{ invoice.vendor.address }}<br>
-                    {{ invoice.vendor.gst_number }}<br>
+                    GST: {{ invoice.vendor.gst_number }}<br>
                 </p>
             </div>
         </div>
@@ -96,6 +96,10 @@
             <div>
                 <p class="font-medium text-gray-500">Vehicle No.</p>
                 <p class="font-semibold text-gray-800">{{ invoice.vehicle.number }}</p>
+            </div>
+            <div>
+                <p class="font-medium text-gray-500">Plan Name.</p>
+                <p class="font-semibold text-gray-800">{{ invoice.plant.name }}</p>
             </div>
         </div>
         
@@ -148,7 +152,7 @@
             
             <!-- Amount in Words -->
             <div class="mt-4 text-sm text-gray-600">
-                <p><span class="font-semibold">Amount in words:</span>{{ invoice.amount_in_words }} </p>
+                <p><span class="font-semibold">Amount in words: </span>{{ invoice.amount_in_words }} </p>
             </div>
         </div>
         
@@ -189,8 +193,8 @@
         </div>
         
         <!-- Footer -->
-        <div class="px-4 py-3 bg-blue-600 text-center text-xs text-white mt-auto">
-            <p>Manjula Enterprises | GST: khdfksdhfkljh | Phone: +91 1234567890 | Email: contact@abc.com</p>
+        <div class="px-4 py-3 bg-indigo-700 text-white text-center text-xs text-white mt-auto">
+            <p>Manjula Enterprises | GST: 27ENTPK3296J1Z4 | Phone: +91 9834880842 </p>
         </div>
     </div>
     
