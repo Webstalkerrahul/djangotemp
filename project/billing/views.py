@@ -31,10 +31,15 @@ def generate_invoice(request):
             if invoice is None:
                 return render(request, 'billing.html', {'error': 'Error adding data'})
             else:
-                response = render_invoice_pdf(invoice)
+                print(request.user)
+                if request.user.username == 'sahil':
+                    flag =True
+                else:
+                    flag = False
+                response = render_invoice_pdf(invoice,flag)
             
                 return response
-            
+    print(type(request.user))             
     vendor = queries.get_vendor()
     product = queries.get_product()
     company = queries.get_company()
@@ -43,7 +48,7 @@ def generate_invoice(request):
 
     return render(request, 'billing.html', {'vendors': vendor, 'products': product, 'company': company, 'plants': plant, 'vehicles': vehicle})
 
-def render_invoice_pdf(invoice):
+def render_invoice_pdf(invoice, flag):
     date_obj = datetime.now()
     formatted_datetime = date_obj.strftime("%d-%m-%Y-%H-%M")
     logo_path = os.path.join(settings.BASE_DIR, 'billing/static', 'logo.png')
@@ -60,7 +65,11 @@ def render_invoice_pdf(invoice):
     }
     
     # Render template to string
-    html_content = render_to_string("bill_template.html", context)
+    if flag==True:
+         print("flag is true")
+         html_content = render_to_string("demo_template.html", context)
+    else:
+         html_content = render_to_string("bill_template.html", context)
     
     # Create a temporary HTML file to ensure all resources load properly
     with tempfile.NamedTemporaryFile(suffix='.html', delete=False) as f:
