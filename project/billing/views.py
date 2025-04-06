@@ -40,11 +40,11 @@ def generate_invoice(request):
             
                 return response
     print(type(request.user))             
-    vendor = queries.get_vendor()
-    product = queries.get_product()
-    company = queries.get_company()
-    plant = queries.get_plant()
-    vehicle = queries.get_vehicle()
+    vendor = queries.get_vendor(request.user)
+    product = queries.get_product(request.user)
+    company = queries.get_company(request.user)
+    plant = queries.get_plant(request.user)
+    vehicle = queries.get_vehicle(request.user)
 
     return render(request, 'billing.html', {'vendors': vendor, 'products': product, 'company': company, 'plants': plant, 'vehicles': vehicle})
 

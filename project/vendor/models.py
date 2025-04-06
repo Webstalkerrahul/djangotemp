@@ -10,6 +10,7 @@ class Vendor(models.Model):
     gst_number = models.CharField(max_length=100, blank=True)
     pincode = models.CharField(max_length=10, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
     def __str__(self):
         return self.name
 
@@ -25,6 +26,7 @@ class Plant(models.Model):
     address = models.TextField(blank=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
     def __str__(self):
         return self.name
 

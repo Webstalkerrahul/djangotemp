@@ -7,23 +7,34 @@ from decimal import Decimal
 from num2words import num2words
 from .amount_to_words import num_to_words_indian
 
-def get_vendor():
-    return Vendor.objects.all()
+def get_vendor(logged_in_user):
+    if logged_in_user.is_superuser:
+        return Vendor.objects.all()
+    return Vendor.objects.filter(user=logged_in_user)
 
-def get_product():
-    return Product.objects.all()
+def get_product(logged_in_user):
+    if logged_in_user.is_superuser:
+        return Product.objects.all()
+    return Product.objects.filter(user=logged_in_user)
 
-def get_company():
-    return Company.objects.all()
+def get_company(logged_in_user):
+    if logged_in_user.is_superuser:
+        return Company.objects.all()
+    return Company.objects.filter(user=logged_in_user)
 
-def get_plant():
-    return Plant.objects.all()
+def get_plant(logged_in_user):
+    if logged_in_user.is_superuser:
+        return Plant.objects.all()
+    return Plant.objects.filter(user=logged_in_user)
 
 def get_billing():
     return Billing.objects.all()
 
-def get_vehicle():
-    return Vehicle.objects.all()
+def get_vehicle(logged_in_user):
+    if logged_in_user.is_superuser:
+        return Vehicle.objects.all()
+    return Vehicle.objects.filter(user=logged_in_user)
+
 def add_data_billing(invoice_number, chalan_number, rate, quantity, date_str, vendor_id, plant_id, product_id, company_id, vehicle_id):
     try:
         billing =  Billing.objects.create(invoice_number=invoice_number, chalan_number=chalan_number, rate=rate, quantity=quantity, date=date_str, vendor_id=vendor_id, plant_id=plant_id, product_id=product_id, company_id=company_id, vehicle_id=vehicle_id)
