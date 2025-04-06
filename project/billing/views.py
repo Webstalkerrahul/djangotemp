@@ -39,7 +39,7 @@ def generate_invoice(request):
                 response = render_invoice_pdf(invoice,flag)
             
                 return response
-    print(type(request.user))             
+      
     vendor = queries.get_vendor(request.user)
     product = queries.get_product(request.user)
     company = queries.get_company(request.user)
@@ -66,7 +66,6 @@ def render_invoice_pdf(invoice, flag):
     
     # Render template to string
     if flag==True:
-         print("flag is true")
          html_content = render_to_string("demo_template.html", context)
     else:
          html_content = render_to_string("bill_template.html", context)
