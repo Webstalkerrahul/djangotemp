@@ -3,12 +3,13 @@ from vendor.models import Vendor, Plant
 from product.models import Product
 from company.models import Company
 from vehicle.models import Vehicle
+from datetime import date
 
 class Billing(models.Model):
     invoice_number = models.CharField(max_length=100)
     rate = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(default=date.today, blank=True, null=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT)
     plant = models.ForeignKey(Plant, on_delete=models.PROTECT)
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
@@ -24,7 +25,7 @@ class Invoice(models.Model):
     invoice_number = models.CharField(max_length=100, blank=True, null=True)
     rate = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
     quantity = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(default=date.today, blank=True, null=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT,blank=True, null=True)
     plant = models.ForeignKey(Plant, on_delete=models.PROTECT,blank=True, null=True)
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT,blank=True, null=True)

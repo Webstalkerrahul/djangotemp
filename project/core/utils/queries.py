@@ -4,6 +4,7 @@ from product.models import Product
 from company.models import Company
 from vehicle.models import Vehicle
 from decimal import Decimal
+from datetime import datetime, date
 from num2words import num2words
 from .amount_to_words import num_to_words_indian
 
@@ -37,6 +38,11 @@ def get_vehicle(logged_in_user):
 
 def add_data_billing(invoice_number, chalan_number, rate, quantity, date_str, vendor_id, plant_id, product_id, company_id, vehicle_id):
     try:
+        if date_str:
+            date_str = datetime.strptime(date_str, "%Y-%m-%d").date()
+        else:
+            date_str = date.today()
+    
         billing =  Billing.objects.create(invoice_number=invoice_number, chalan_number=chalan_number, rate=rate, quantity=quantity, date=date_str, vendor_id=vendor_id, plant_id=plant_id, product_id=product_id, company_id=company_id, vehicle_id=vehicle_id)
 
         vendor = Vendor.objects.get(id=vendor_id)
@@ -57,6 +63,7 @@ def add_data_billing(invoice_number, chalan_number, rate, quantity, date_str, ve
         # Convert net_amount to words
         # words = num2words(net_amount, to="currency", lang="en_IN")
         words = num_to_words_indian(round(net_amount))
+        print("here",date_str)
         # Create the Invoice object
         invoice = Invoice.objects.create(
             invoice_number=invoice_number,

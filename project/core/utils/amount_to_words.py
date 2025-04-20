@@ -121,4 +121,3 @@ def num_to_words_indian(num):
 # Test with your example
 amount = 101950
 words = num_to_words_indian(amount)
-print(words)  # Output: "One lakh one thousand nine hundred fifty Rupees Only"

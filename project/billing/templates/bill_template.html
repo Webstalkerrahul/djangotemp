@@ -204,25 +204,6 @@
             Print Invoice / Save as PDF
         </button>
     </div>
-    
-    <script>
-        // Set current date and due date (30 days from now)
-        document.addEventListener('DOMContentLoaded', function() {
-            const today = new Date();
-            const dueDate = new Date(today);
-            dueDate.setDate(today.getDate() + 30);
-            
-            const formatDate = (date) => {
-                return date.toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
-            };
-            
-            document.getElementById('invoice-date').textContent = formatDate(today);
-            document.getElementById('due-date').textContent = formatDate(dueDate);
-        });
-    </script>
+
 </body>
 </html>

@@ -31,7 +31,6 @@ def generate_invoice(request):
             if invoice is None:
                 return render(request, 'billing.html', {'error': 'Error adding data'})
             else:
-                print(request.user)
                 if request.user.username == 'sahil':
                     flag =True
                 else:
