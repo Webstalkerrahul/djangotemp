@@ -123,18 +123,7 @@ def render_invoice_pdf(invoice, flag):
     # Create a URL for the PDF
     base_url = "https://genericinvoice.duckdns.org"
     pdf_url = f"{base_url}/media/invoices/{pdf_filename}"
-    
-    # Send WhatsApp message with Twilio
-    account_sid = settings.TWILIO_ACCOUNT_SID
-    auth_token = settings.TWILIO_AUTH_TOKEN
-    client = Client(account_sid, auth_token)
-    
-    message = client.messages.create(
-        from_='whatsapp:+14155238886',
-        body='Here is your requested PDF!',
-        media_url=[pdf_url],
-        to='whatsapp:+918857844401'
-    )
+
     
     # Create response with the PDF
     response = HttpResponse(pdf_data, content_type="application/pdf")

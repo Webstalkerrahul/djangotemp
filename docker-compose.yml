@@ -2,33 +2,17 @@ version: '3.8'
 
 services:
   web:
-    image: django-app:latest
+    build:
+      context: .
+      dockerfile: DockerFile
     ports:
       - "8000:8000"
+    volumes:
+      - .:/app/djangotemp/project  # Mount the entire project directory
     environment:
-      - DEBUG=0
+      - DEBUG=1
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONPATH=/app/djangotemp/project/project  # Set the Python path to match the DockerFile
     restart: unless-stopped
-    command: gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 4 --access-logfile - --error-logfile -
-
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "8080:8080"
-      - "443:443"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    depends_on:
-      - web
-    restart: always
-
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-
+    command: gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 4 --reload --access-logfile - --error-logfile -
