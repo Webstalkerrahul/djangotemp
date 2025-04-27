@@ -109,3 +109,6 @@ def render_invoice_pdf(invoice, flag):
     response["Content-Disposition"] = f'inline; filename="invoice-no-{invoice.invoice_number}-{formatted_datetime}.pdf"'
     return response
 
+def home(request):
+    print("Home page accessed")
+    return render(request,"home.html")
