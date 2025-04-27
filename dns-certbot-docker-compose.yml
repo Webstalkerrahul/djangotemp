@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    command: certonly --manual --preferred-challenges dns --email rkakade2143@gmail.com --agree-tos --no-eff-email -d genericinvoice.duckdns.org -v
+    stdin_open: true
+    tty: true

@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    command: certonly --webroot --webroot-path=/var/www/certbot --email rkakade2143@gmail.com --agree-tos --no-eff-email --force-renewal -d genericinvoice.duckdns.org -v

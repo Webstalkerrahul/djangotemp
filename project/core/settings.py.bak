@@ -16,11 +16,7 @@ SECRET_KEY = 'django-insecure-*p-gc2k_^-f$j!z%rsn91h-)zsjl6c_h%j%-9(mhy95tm&iug=
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True  # Set to False for production
-CSRF_TRUSTED_ORIGINS = ['https://genericinvoice.duckdns.org', 'http://genericinvoice.duckdns.org']# CSRF Settings
 CSRF_TRUSTED_ORIGINS = ['https://genericinvoice.duckdns.org', 'http://genericinvoice.duckdns.org']
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_DOMAIN = '.genericinvoice.duckdns.org'
-CSRF_USE_SESSIONS = True
 ALLOWED_HOSTS = ['*', 'djangotemp-8sn5.onrender.com','genericinvoice.duckdns.org', 'localhost', '127.0.0.1']
 
 # Application definition
@@ -116,9 +112,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
-
-# CSRF Settings
-CSRF_TRUSTED_ORIGINS = ['https://genericinvoice.duckdns.org', 'http://genericinvoice.duckdns.org']
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_DOMAIN = '.genericinvoice.duckdns.org'
-CSRF_USE_SESSIONS = True
