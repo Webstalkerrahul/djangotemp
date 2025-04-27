@@ -9,6 +9,8 @@ from django.conf import settings
 from core.utils import queries
 from datetime import datetime
 from django.contrib.auth.decorators import login_required
+from twilio.rest import Client
+from django.core.cache import cache
 
 @login_required
 def generate_invoice(request):
@@ -44,6 +46,7 @@ def generate_invoice(request):
     company = queries.get_company(request.user)
     plant = queries.get_plant(request.user)
     vehicle = queries.get_vehicle(request.user)
+       
 
     return render(request, 'billing.html', {'vendors': vendor, 'products': product, 'company': company, 'plants': plant, 'vehicles': vehicle})
 
@@ -104,10 +107,46 @@ def render_invoice_pdf(invoice, flag):
         if os.path.exists(temp_file_path):
             os.unlink(temp_file_path)
     
-    # Return the PDF as a response
+    # Create the directory structure if it doesn't exist
+    pdf_dir = os.path.join(settings.MEDIA_ROOT, 'invoices')
+    os.makedirs(pdf_dir, exist_ok=True)
+    
+    # Generate filename for the PDF
+    pdf_filename = f"invoice-no-{invoice.invoice_number}-{formatted_datetime}.pdf"
+    pdf_path = os.path.join(pdf_dir, pdf_filename)
+    
+    # Save the PDF to the file system
+    with open(pdf_path, 'wb') as f:
+        f.write(pdf_data)
+    
+    # Create a URL for the PDF
+    base_url = "https://genericinvoice.duckdns.org"
+    pdf_url = f"{base_url}/media/invoices/{pdf_filename}"
+    
+    # Send WhatsApp message with Twilio
+    account_sid = 'AC6b983c3b6c81f91d39d656fa3973bc5b'
+    auth_token = '514a1ebd0eb23e3352ed2e6258e1957d'
+    client = Client(account_sid, auth_token)
+    
+    message = client.messages.create(
+        from_='whatsapp:+14155238886',
+        body='Here is your requested PDF!',
+        media_url=[pdf_url],
+        to='whatsapp:+918857844401'
+    )
+    
+    # Create response with the PDF
     response = HttpResponse(pdf_data, content_type="application/pdf")
-    response["Content-Disposition"] = f'inline; filename="invoice-no-{invoice.invoice_number}-{formatted_datetime}.pdf"'
+    response["Content-Disposition"] = f'inline; filename="{pdf_filename}"'
     return response
+
+def serve_temp_pdf(request, cache_key):
+    pdf_data = cache.get(cache_key)
+    if pdf_data:
+        response = HttpResponse(pdf_data, content_type="application/pdf")
+        response["Content-Disposition"] = f'inline; filename="invoice.pdf"'
+        return response
+    return HttpResponse("PDF not found", status=404)
 
 def home(request):
     print("Home page accessed")
