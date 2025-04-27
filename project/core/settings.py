@@ -82,6 +82,8 @@ DATABASES = {
     'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
 }
 
+TWILIO_ACCOUNT_SID = 'AC6b983c3b6c81f91d39d656fa3973bc5b'
+TWILIO_AUTH_TOKEN = '514a1ebd0eb23e3352ed2e6258e1957d'
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

@@ -11,6 +11,7 @@ from datetime import datetime
 from django.contrib.auth.decorators import login_required
 from twilio.rest import Client
 from django.core.cache import cache
+from django.conf import settings
 
 @login_required
 def generate_invoice(request):
@@ -124,8 +125,8 @@ def render_invoice_pdf(invoice, flag):
     pdf_url = f"{base_url}/media/invoices/{pdf_filename}"
     
     # Send WhatsApp message with Twilio
-    account_sid = 'AC6b983c3b6c81f91d39d656fa3973bc5b'
-    auth_token = '514a1ebd0eb23e3352ed2e6258e1957d'
+    account_sid = settings.TWILIO_ACCOUNT_SID
+    auth_token = settings.TWILIO_AUTH_TOKEN
     client = Client(account_sid, auth_token)
     
     message = client.messages.create(
