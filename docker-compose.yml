@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   web:
     image: django-app:latest
@@ -17,8 +15,8 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"    # Alternative HTTP port
+      - "8443:443"   # Alternative HTTPS port
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./certbot/conf:/etc/letsencrypt
@@ -46,7 +44,7 @@ services:
       - PGID=1000
       - TZ=Asia/Kolkata
       - SUBDOMAINS=genericinvoice
-      - TOKEN=fbd875a6-2110-4a0d-b9da-96a4d078a270  # Updated with your token
+      - TOKEN=fbd875a6-2110-4a0d-b9da-96a4d078a270
       - LOG_FILE=true
       - IPV4=true
     volumes:
