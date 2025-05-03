@@ -58,8 +58,7 @@ networks:
     name: djangotemp_frontend  # Explicit network naming
     driver: bridge
     attachable: true
-    enable_ipv6: false
-    
+    enable_ipv6: false     
   backend:
     name: djangotemp_backend
     driver: bridge
