@@ -15,8 +15,8 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "8080:8080"
-      - "443:443"
+      - "80:80"       # Changed from 8080:8080 to standard HTTP port
+      - "443:443"     # HTTPS port
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./certbot/conf:/etc/letsencrypt
