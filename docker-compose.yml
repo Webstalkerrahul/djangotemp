@@ -15,8 +15,8 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "8080:80"    # Alternative HTTP port
-      - "8443:443"   # Alternative HTTPS port
+      - "0.0.0.0:8080:80"
+      - "0.0.0.0:8443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./certbot/conf:/etc/letsencrypt
