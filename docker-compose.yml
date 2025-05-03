@@ -4,7 +4,7 @@ services:
   web:
     image: django-app:latest
     expose:
-      - "8000"  # Changed from ports to expose for internal access only
+      - "8000"
     environment:
       - DEBUG=0
       - PYTHONUNBUFFERED=1
@@ -46,9 +46,9 @@ services:
       - PGID=1000
       - TZ=Asia/Kolkata
       - SUBDOMAINS=genericinvoice
-      - TOKEN=your_duckdns_token
+      - TOKEN=fbd875a6-2110-4a0d-b9da-96a4d078a270  # Updated with your token
       - LOG_FILE=true
-      - IPV4=true  # Force IPv4 updates
+      - IPV4=true
     volumes:
       - ./duckdns:/config
     restart: unless-stopped
@@ -58,6 +58,6 @@ services:
 networks:
   frontend:
     driver: bridge
-    enable_ipv6: false  # Disable IPv6 to prevent connection issues
+    enable_ipv6: false
   backend:
     driver: bridge
