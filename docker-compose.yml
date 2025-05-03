@@ -4,7 +4,7 @@ services:
   web:
     image: django-app:latest
     ports:
-      - "8000:8000"
+      - "0.0.0.0:8000:8000"  # Bind to all interfaces
     environment:
       - DEBUG=0
       - PYTHONUNBUFFERED=1
@@ -15,8 +15,8 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "8080:8080"
-      - "443:443"
+      - "0.0.0.0:80:8080"    # Map standard HTTP port to Nginx
+      - "0.0.0.0:443:443"    # Bind to all interfaces
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./certbot/conf:/etc/letsencrypt
@@ -30,5 +30,4 @@ services:
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait ${!}; done;'"
