@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   web:
     image: django-app:latest
@@ -15,18 +17,21 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "8080:80" 
-      - "8443:443"
+      - "80:80" 
+      - "443:443"  # Changed from 8443:443 to standard ports
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
       - web
     networks:
       - frontend
       - backend
     restart: always
+    # Add reload script for certificate renewal
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
 
   certbot:
     image: certbot/certbot
@@ -46,7 +51,6 @@ services:
       - SUBDOMAINS=genericinvoice
       - TOKEN=fbd875a6-2110-4a0d-b9da-96a4d078a270
       - LOG_FILE=true
-      - IPV4=true
     volumes:
       - ./duckdns:/config
     restart: unless-stopped
@@ -55,7 +59,7 @@ services:
 
 networks:
   frontend:
-    name: djangotemp_frontend  # Explicit network naming
+    name: djangotemp_frontend
     driver: bridge
     attachable: true
     enable_ipv6: false     
