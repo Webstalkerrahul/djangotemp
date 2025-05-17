@@ -121,7 +121,7 @@ def render_invoice_pdf(invoice, flag):
         f.write(pdf_data)
     
     # Create a URL for the PDF
-    base_url = "https://genericinvoice.duckdns.org"
+    base_url = "http://localhost:5000"
     pdf_url = f"{base_url}/media/invoices/{pdf_filename}"
 
     

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: generic-invoice-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: generic-invoice-deployment
+  template:
+    metadata:
+      labels:
+        app: generic-invoice-deployment
+    spec:
+      containers:
+      - name: generic-invoice-deployment
+        image: rahulkakade/experiments:latest
+        ports:
+        - containerPort: 8000
+      imagePullSecrets:
+        - name: dockerhub-auth
