@@ -127,7 +127,7 @@ def render_invoice_pdf(invoice, flag):
     
     # Create response with the PDF
     response = HttpResponse(pdf_data, content_type="application/pdf")
-    response["Content-Disposition"] = f'inline; filename="{pdf_filename}"'
+    response["Content-Disposition"] = f'attachment; filename="{pdf_filename}"'
     return response
 
 def serve_temp_pdf(request, cache_key):
