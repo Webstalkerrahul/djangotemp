@@ -121,7 +121,7 @@ def render_invoice_pdf(invoice, flag):
         f.write(pdf_data)
     
     # Create a URL for the PDF
-    base_url = "http://localhost:5000"
+    base_url = "https://rahulhost-1.tail64cc94.ts.net"
     pdf_url = f"{base_url}/media/invoices/{pdf_filename}"
 
     
