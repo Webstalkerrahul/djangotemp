@@ -1,278 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Line Invoice Generator</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Generic Invoice Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen py-8">
-    <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">Generate Multi-Line Invoice</h1>
+<div class="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Hello, {{username}}</h1>
+
+    <form id="invoiceForm" method="POST">
+        {% csrf_token %}
         
-        <form id="invoiceForm" method="POST">
-            {% csrf_token %}
-            <!-- Basic Invoice Information -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Invoice Number</label>
-                    <input type="text" name="invoice_number" required 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
-                    <select name="vendor" required 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Select Vendor</option>
-                        <!-- Options will be populated from Django context -->
-                        {% for vendor in vendors %}
+        <!-- Basic Info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Invoice Number</label>
+                <input type="text" name="invoice_number" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Vendor</label>
+                <select name="vendor" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500">
+                    <option value="">Select Vendor</option>
+                    {% for vendor in vendors %}
                         <option value="{{ vendor.id }}">{{ vendor.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                    {% endfor %}
+                </select>
             </div>
+        </div>
 
-            <!-- Line Items Section -->
-            <div class="mb-8">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-gray-800">Invoice Line Items</h2>
-                    <button type="button" id="addLineItem" 
-                            class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md transition-colors">
-                        + Add Line Item
-                    </button>
-                </div>
-
-                <!-- Line Items Container -->
-                <div id="lineItemsContainer" class="space-y-4">
-                    <!-- Initial line item -->
-                    <div class="line-item bg-gray-50 p-4 rounded-lg border">
-                        <div class="flex justify-between items-center mb-3">
-                            <h3 class="font-medium text-gray-700">Line Item 1</h3>
-                            <button type="button" class="remove-item text-red-500 hover:text-red-700 hidden">
-                                ✕ Remove
-                            </button>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Date</label>
-                                <input type="date" name="date" required 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Challan No.</label>
-                                <input type="text" name="chalan_number" required 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Vehicle</label>
-                                <select name="vehicle" required 
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
-                                    <option value="">Select Vehicle</option>
-                                    {% for vehicle in vehicles %}
-                                    <option value="{{ vehicle.id }}">{{ vehicle.number }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Product</label>
-                                <select name="product" required 
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
-                                    <option value="">Select Product</option>
-                                    {% for product in products %}
-                                    <option value="{{ product.id }}">{{ product.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Quantity</label>
-                                <input type="number" step="0.01" name="quantity" required 
-                                       class="quantity-input w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Rate</label>
-                                <input type="number" step="0.01" name="rate" required 
-                                       class="rate-input w-full px-3 py-2 border border-gray-300 rounded-md text-sm">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-600 mb-1">Amount</label>
-                                <input type="number" step="0.01" name="amount" readonly 
-                                       class="amount-display w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-100">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Summary -->
-            <div class="bg-blue-50 p-4 rounded-lg mb-6">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                        <span class="font-medium text-gray-600">Subtotal:</span>
-                        <span id="subtotal" class="font-semibold text-gray-800 ml-2">₹0.00</span>
-                    </div>
-                    <div>
-                        <span class="font-medium text-gray-600">CGST (2.5%):</span>
-                        <span id="cgst" class="font-semibold text-gray-800 ml-2">₹0.00</span>
-                    </div>
-                    <div>
-                        <span class="font-medium text-gray-600">SGST (2.5%):</span>
-                        <span id="sgst" class="font-semibold text-gray-800 ml-2">₹0.00</span>
-                    </div>
-                    <div>
-                        <span class="font-medium text-gray-600">Grand Total:</span>
-                        <span id="grandTotal" class="font-bold text-blue-600 ml-2">₹0.00</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Hidden input for line items JSON -->
-            <input type="hidden" name="line_items" id="lineItemsJson">
-
-            <!-- Submit Button -->
-            <div class="text-center">
-                <button type="submit" 
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105">
-                    Generate Invoice PDF
+        <!-- Line Items -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Invoice Line Items</h2>
+                <button type="button" id="addLineItem"
+                        class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    + Add Line Item
                 </button>
             </div>
-        </form>
-    </div>
+            <div id="lineItemsContainer" class="space-y-4">
+                <!-- Initial Line Item -->
+                <div class="line-item bg-gray-50 p-4 rounded-lg border">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-medium">Line Item 1</h3>
+                        <button type="button" class="remove-item text-red-500 hover:text-red-700 hidden">✕ Remove</button>
+                    </div>
+                   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                            <input type="date" name="date" required class="w-full px-3 py-2 border rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Chalan Number</label>
+                            <input type="text" name="chalan_number" required class="w-full px-3 py-2 border rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Vehicle</label>
+                            <select name="vehicle" required class="w-full px-3 py-2 border rounded text-sm">
+                                <option value="">Select Vehicle</option>
+                                {% for vehicle in vehicles %}
+                                <option value="{{ vehicle.id }}">{{ vehicle.number }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Product</label>
+                            <select name="product" required class="w-full px-3 py-2 border rounded text-sm">
+                                <option value="">Select Product</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}">{{ product.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                            <input type="number" step="0.01" name="quantity" placeholder="Quantity" class="quantity-input w-full px-3 py-2 border rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Rate</label>
+                            <input type="number" step="0.01" name="rate" placeholder="Rate" class="rate-input w-full px-3 py-2 border rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                            <input type="number" step="0.01" name="amount" readonly placeholder="Amount" class="amount-display w-full px-3 py-2 border rounded bg-gray-100 text-sm">
+                        </div>
+                    </div>
 
-    <script>
-        // Get CSRF token
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
+                </div>
+            </div>
+        </div>
+
+        <!-- GST Section -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-1">GST on Total Amount</label>
+            <select id="gstRateSelector" name="gst_rate" required
+                    class="w-full md:w-1/3 px-3 py-2 border border-gray-300 rounded-md">
+                <option value="">Select GST</option>
+                {% for g in gst %}
+                <option value="{{ g.total_gst }}">{{ g.total_gst|floatformat:0 }}%</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Banck Section -->
+        <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Bank Details</label>
+            <select id="bankDetailSelector" name="bank_detail" required
+                    class="w-full md:w-1/3 px-3 py-2 border border-gray-300 rounded-md">
+                <option value="">Select Bank</option>
+                {% for bank in bank_details %}
+                <option value="{{ bank.id }}">{{ bank.bank_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Summary -->
+        <div class="bg-blue-50 p-4 rounded mb-4 grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+            <div><strong>Subtotal:</strong> <span id="subtotal">₹0.00</span></div>
+            <div><strong>CGST (<span id="cgstRate">0</span>%) :</strong> <span id="cgst">₹0.00</span></div>
+            <div><strong>SGST (<span id="sgstRate">0</span>%) :</strong> <span id="sgst">₹0.00</span></div>
+            <div><strong>Grand Total:</strong> <span id="grandTotal">₹0.00</span></div>
+        </div>
+
+        <!-- Hidden input for backend -->
+        <input type="hidden" name="line_items" id="lineItemsJson">
+
+        <!-- Submit -->
+        <div class="text-center">
+            <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200">
+                Generate Invoice PDF
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    let lineItemCount = 1;
+
+    document.getElementById('addLineItem').addEventListener('click', function () {
+        lineItemCount++;
+        const container = document.getElementById('lineItemsContainer');
+        const template = container.children[0].cloneNode(true);
+
+        template.querySelector('h3').textContent = `Line Item ${lineItemCount}`;
+        template.querySelectorAll('input, select').forEach(input => input.value = '');
+        template.querySelector('.remove-item').classList.remove('hidden');
+        container.appendChild(template);
+
+        if (container.children.length > 1) {
+            container.querySelectorAll('.remove-item').forEach(btn => btn.classList.remove('hidden'));
         }
-        const csrftoken = getCookie('csrftoken');
 
-        let lineItemCount = 1;
-
-        // Add new line item
-        document.getElementById('addLineItem').addEventListener('click', function() {
-            lineItemCount++;
-            const container = document.getElementById('lineItemsContainer');
-            const template = container.children[0].cloneNode(true);
-            
-            // Update the title
-            template.querySelector('h3').textContent = `Line Item ${lineItemCount}`;
-            
-            // Clear all input values
-            template.querySelectorAll('input, select').forEach(input => {
-                if (input.type !== 'date') {
-                    input.value = '';
-                }
-            });
-            
-            // Show remove button for new items
-            template.querySelector('.remove-item').classList.remove('hidden');
-            
-            container.appendChild(template);
-            
-            // Show remove buttons on all items if more than one
-            if (container.children.length > 1) {
-                container.querySelectorAll('.remove-item').forEach(btn => {
-                    btn.classList.remove('hidden');
-                });
-            }
-            
-            updateCalculations();
-        });
-
-        // Remove line item
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('remove-item')) {
-                const lineItem = e.target.closest('.line-item');
-                lineItem.remove();
-                
-                // Update line item numbers
-                document.querySelectorAll('.line-item h3').forEach((title, index) => {
-                    title.textContent = `Line Item ${index + 1}`;
-                });
-                
-                // Hide remove buttons if only one item left
-                const container = document.getElementById('lineItemsContainer');
-                if (container.children.length === 1) {
-                    container.querySelector('.remove-item').classList.add('hidden');
-                }
-                
-                updateCalculations();
-            }
-        });
-
-        // Calculate amount for each line item
-        document.addEventListener('input', function(e) {
-            if (e.target.classList.contains('quantity-input') || e.target.classList.contains('rate-input')) {
-                const lineItem = e.target.closest('.line-item');
-                const quantity = parseFloat(lineItem.querySelector('.quantity-input').value) || 0;
-                const rate = parseFloat(lineItem.querySelector('.rate-input').value) || 0;
-                const amount = quantity * rate;
-                
-                lineItem.querySelector('.amount-display').value = amount.toFixed(2);
-                updateCalculations();
-            }
-        });
-
-        // Update total calculations
-        function updateCalculations() {
-            let subtotal = 0;
-            
-            document.querySelectorAll('.amount-display').forEach(input => {
-                subtotal += parseFloat(input.value) || 0;
-            });
-            
-            const cgst = subtotal * 0.025;
-            const sgst = subtotal * 0.025;
-            const grandTotal = subtotal + cgst + sgst;
-            
-            document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
-            document.getElementById('cgst').textContent = `₹${cgst.toFixed(2)}`;
-            document.getElementById('sgst').textContent = `₹${sgst.toFixed(2)}`;
-            document.getElementById('grandTotal').textContent = `₹${grandTotal.toFixed(2)}`;
-        }
-
-        // Form submission
-        document.getElementById('invoiceForm').addEventListener('submit', function(e) {
-            const lineItems = [];
-            
-            document.querySelectorAll('.line-item').forEach(item => {
-                const lineItem = {
-                    date: item.querySelector('input[name="date"]').value,
-                    chalan_number: item.querySelector('input[name="chalan_number"]').value,
-                    vehicle_id: item.querySelector('select[name="vehicle"]').value,
-                    product_id: item.querySelector('select[name="product"]').value,
-                    quantity: parseFloat(item.querySelector('input[name="quantity"]').value),
-                    rate: parseFloat(item.querySelector('input[name="rate"]').value),
-                    amount: parseFloat(item.querySelector('input[name="amount"]').value)
-                };
-                lineItems.push(lineItem);
-            });
-            
-            document.getElementById('lineItemsJson').value = JSON.stringify(lineItems);
-        });
-
-        // Initialize calculations
         updateCalculations();
-    </script>
+    });
+
+    document.addEventListener('click', function (e) {
+        if (e.target.classList.contains('remove-item')) {
+            e.target.closest('.line-item').remove();
+
+            document.querySelectorAll('.line-item h3').forEach((title, index) => {
+                title.textContent = `Line Item ${index + 1}`;
+            });
+
+            if (document.getElementById('lineItemsContainer').children.length === 1) {
+                document.querySelector('.remove-item').classList.add('hidden');
+            }
+
+            updateCalculations();
+        }
+    });
+
+    document.addEventListener('input', function (e) {
+        if (e.target.classList.contains('quantity-input') || e.target.classList.contains('rate-input')) {
+            const lineItem = e.target.closest('.line-item');
+            const qty = parseFloat(lineItem.querySelector('.quantity-input').value) || 0;
+            const rate = parseFloat(lineItem.querySelector('.rate-input').value) || 0;
+            const amount = qty * rate;
+            lineItem.querySelector('.amount-display').value = amount.toFixed(2);
+            updateCalculations();
+        }
+    });
+
+    document.getElementById('gstRateSelector').addEventListener('change', updateCalculations);
+
+    function updateCalculations() {
+        let subtotal = 0;
+        document.querySelectorAll('.amount-display').forEach(input => {
+            subtotal += parseFloat(input.value) || 0;
+        });
+
+        const gstRate = parseFloat(document.getElementById('gstRateSelector').value) || 0;
+        const cgst = (subtotal * gstRate) / 200;
+        const sgst = (subtotal * gstRate) / 200;
+        const grandTotal = subtotal + cgst + sgst;
+
+        document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+        document.getElementById('cgst').textContent = `₹${cgst.toFixed(2)}`;
+        document.getElementById('sgst').textContent = `₹${sgst.toFixed(2)}`;
+        document.getElementById('grandTotal').textContent = `₹${grandTotal.toFixed(2)}`;
+        document.getElementById('cgstRate').textContent = (gstRate / 2).toFixed(1).replace(/\.0$/, '');
+        document.getElementById('sgstRate').textContent = (gstRate / 2).toFixed(1).replace(/\.0$/, '');
+    }
+
+    // Prepare JSON for backend
+    document.getElementById('invoiceForm').addEventListener('submit', function () {
+        const lineItems = [];
+        document.querySelectorAll('.line-item').forEach(item => {
+            lineItems.push({
+                date: item.querySelector('input[name="date"]').value,
+                chalan_number: item.querySelector('input[name="chalan_number"]').value,
+                vehicle_id: item.querySelector('select[name="vehicle"]').value,
+                product_id: item.querySelector('select[name="product"]').value,
+                quantity: parseFloat(item.querySelector('input[name="quantity"]').value) || 0,
+                rate: parseFloat(item.querySelector('input[name="rate"]').value) || 0,
+                amount: parseFloat(item.querySelector('input[name="amount"]').value) || 0
+            });
+        });
+        document.getElementById('lineItemsJson').value = JSON.stringify(lineItems);
+    });
+
+    updateCalculations();
+</script>
 </body>
 </html>

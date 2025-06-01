@@ -177,19 +177,22 @@ def generate_invoice(request):
             line_items = json.loads(line_items_json)
         except json.JSONDecodeError:
             return render(request, 'billing.html', {'error': 'Invalid line items format'})
-        
+
+        gst_rate = request.POST.get('gst_rate',0)
         # Create invoice with multiple line items
         invoice = queries.add_multi_line_invoice(
             invoice_number, 
             vendor_id, 
-            line_items
+            line_items,
+            gst_rate = gst_rate,
+            bank_detail = request.POST.get('bank_detail', None),
         )
         
         if invoice is None:
             return render(request, 'billing.html', {'error': 'Error creating invoice'})
         else:
             flag = request.user.username == 'sahil'
-            response = render_invoice_pdf(invoice, flag)
+            response = render_invoice_pdf(invoice, flag, gst_rate)
             return response
     
     # GET request - show form
@@ -198,17 +201,22 @@ def generate_invoice(request):
     company = queries.get_company(request.user)
     plant = queries.get_plant(request.user)
     vehicle = queries.get_vehicle(request.user)
+    gst = queries.get_gst()
+    bank_details =  queries.get_bank_details(request.user)
     
     return render(request, 'billing.html', {
         'vendors': vendor, 
         'products': product, 
         'company': company, 
         'plants': plant, 
-        'vehicles': vehicle
+        'vehicles': vehicle,
+        'gst': gst,
+        "username":request.user.username,
+        'bank_details': bank_details
     })
 
 @csrf_exempt
-def render_invoice_pdf(invoice, flag):
+def render_invoice_pdf(invoice, flag, gst_rate):
     date_obj = datetime.now()
     formatted_datetime = date_obj.strftime("%d-%m-%Y-%H-%M")
     logo_path = os.path.join(settings.BASE_DIR, 'billing/static', 'logo.png')
@@ -217,10 +225,12 @@ def render_invoice_pdf(invoice, flag):
         encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
     
     logo_data_url = f"data:image/png;base64,{encoded_logo}"
-   
     context = {
         "invoice": invoice,
         "logo_data_url": logo_data_url,
+        "cgst_rate": float(gst_rate)/2,
+        "sgst_rate":  float(gst_rate)/2,
+        "total_gst_rate": gst_rate,
     }
     
     # Render template to string

@@ -1,7 +1,7 @@
 from django.db import models
 from vendor.models import Vendor, Plant
 from product.models import Product
-from company.models import Company
+from company.models import Company, BankDetail
 from vehicle.models import Vehicle
 from datetime import date
 
@@ -38,6 +38,16 @@ class Invoice(models.Model):
     sgst = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
     net_amount = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
     amount_in_words = models.CharField(max_length=300,blank=True, null=True)
+    bank_details = models.ForeignKey(BankDetail, on_delete=models.PROTECT,blank=True, null=True)
+    
 
     def __str__(self):
         return f'Invoice {self.invoice_number}'
+    
+class GST(models.Model):
+    cgst = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    sgst = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    total_gst = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+
+    def __str__(self):
+        return f'GST {self.total_gst}'

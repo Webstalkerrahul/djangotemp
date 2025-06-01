@@ -13,3 +13,15 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
+
+class BankDetail(models.Model):
+    company = models.ForeignKey(Company, on_delete=models.PROTECT, related_name='bank_details')
+    bank_name = models.CharField(max_length=255, null=True, blank=True)
+    account_number = models.CharField(max_length=50,  null=True, blank=True)
+    ifsc_code = models.CharField(max_length=20,  null=True, blank=True)
+    branch = models.CharField(max_length=255, blank=True, null=True)
+    account_holder_name = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.bank_name}"

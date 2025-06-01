@@ -1,12 +1,13 @@
-from billing.models import Billing, Invoice
+from billing.models import Billing, Invoice, GST
 from vendor.models import Vendor, Plant
 from product.models import Product
-from company.models import Company
+from company.models import Company, BankDetail
 from vehicle.models import Vehicle
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from datetime import datetime, date
 from num2words import num2words
 from .amount_to_words import num_to_words_indian
+import re
 
 def get_vendor(logged_in_user):
     if logged_in_user.is_superuser:
@@ -36,59 +37,38 @@ def get_vehicle(logged_in_user):
         return Vehicle.objects.all()
     return Vehicle.objects.filter(user=logged_in_user)
 
-def add_data_billing(invoice_number, chalan_number, rate, quantity, date_str, vendor_id, plant_id, product_id, company_id, vehicle_id):
-    try:
-        if date_str:
-            date_str = datetime.strptime(date_str, "%Y-%m-%d").date()
-        else:
-            date_str = date.today()
+def get_gst():
+    return GST.objects.all()
+
+def get_bank_details(logged_in_user):
+    if logged_in_user.is_superuser:
+        return BankDetail.objects.all()
+    return BankDetail.objects.filter(company=logged_in_user.company)
+def clean_gst_rate(gst_rate):
+    """
+    Clean and validate GST rate input
+    """
+    if gst_rate is None:
+        return "12"  # Default GST rate
     
-        billing = Billing.objects.create(invoice_number=invoice_number, chalan_number=chalan_number, rate=rate, quantity=quantity, date=date_str, vendor_id=vendor_id, plant_id=plant_id, product_id=product_id, company_id=company_id, vehicle_id=vehicle_id)
+    # Convert to string and clean
+    rate_str = str(gst_rate).strip()
+    
+    # Remove any currency symbols, percentage signs, or other characters
+    cleaned = re.sub(r'[^\d.]', '', rate_str)
+    
+    # Handle empty string
+    if not cleaned or cleaned == '.':
+        return "12"
+    
+    # Validate it's a valid number
+    try:
+        float(cleaned)
+        return cleaned
+    except ValueError:
+        return "12"
 
-        vendor = Vendor.objects.get(id=vendor_id)
-        plant = Plant.objects.get(id=plant_id)
-        product = Product.objects.get(id=product_id)
-        company = Company.objects.get(id=company_id)
-        vehicle = Vehicle.objects.get(id=vehicle_id)
-
-        rate = Decimal(rate)  # Convert rate to Decimal
-        quantity = Decimal(quantity)  # Convert quantity to Decimal
-        total_amount = rate * quantity
-        cgst = total_amount * Decimal('0.025')
-        sgst = total_amount * Decimal('0.025')
-
-        # Calculate net_amount
-        net_amount = Decimal(total_amount) + cgst + sgst
-
-        # Convert net_amount to words
-        words = num_to_words_indian(round(net_amount))
-        print("here", date_str)
-        
-        # Create the Invoice object
-        invoice = Invoice.objects.create(
-            invoice_number=invoice_number,
-            rate=rate,
-            quantity=quantity,
-            date=date_str,
-            vendor=vendor,
-            plant=plant,
-            product=product,
-            chalan_number=chalan_number,
-            company=company,
-            total_amount=total_amount,
-            cgst=cgst,
-            sgst=sgst,
-            net_amount=net_amount,
-            amount_in_words=words,
-            vehicle=vehicle
-        )
-        # Save the object to the database
-        return invoice
-    except Exception as e:
-        print(f"Error adding data: {e}")
-        return None
-
-def add_multi_line_invoice(invoice_number, vendor_id, line_items):
+def add_multi_line_invoice(invoice_number, vendor_id, line_items, gst_rate, bank_detail):
     """
     Create an invoice with multiple line items
     
@@ -97,6 +77,8 @@ def add_multi_line_invoice(invoice_number, vendor_id, line_items):
         vendor_id: ID of the vendor
         line_items: List of dictionaries containing line item data
                    Each dict should have: date, chalan_number, vehicle_id, product_id, quantity, rate, amount
+        gst_rate: GST rate (can be string with % or decimal)
+        bank_detail: Bank detail ID
     
     Returns:
         Invoice object with items attribute containing all line items
@@ -142,10 +124,28 @@ def add_multi_line_invoice(invoice_number, vendor_id, line_items):
             }
             invoice_items.append(invoice_item)
         
-        # Calculate taxes
-        cgst = total_amount * Decimal('0.025')
-        sgst = total_amount * Decimal('0.025')
-        net_amount = total_amount + cgst + sgst
+        # Calculate taxes with proper error handling
+        try:
+            
+            # Clean the GST rate
+            gst_rate_clean = clean_gst_rate(gst_rate)
+            
+            # Convert to Decimal safely
+            gst_decimal = Decimal(gst_rate_clean)
+            
+            # Calculate CGST and SGST (each is half of total GST)
+            cgst = total_amount * (gst_decimal / 2) / 100
+            sgst = total_amount * (gst_decimal / 2) / 100
+            net_amount = total_amount + cgst + sgst
+            
+        except (InvalidOperation, ValueError) as e:
+            print(f"Error with GST rate '{gst_rate}': {e}")
+            print("Using default 12% GST rate")
+            
+            # Fallback calculation with 12% GST (6% CGST + 6% SGST)
+            cgst = total_amount * Decimal('6') / 100
+            sgst = total_amount * Decimal('6') / 100
+            net_amount = total_amount + cgst + sgst
         
         # Convert net_amount to words
         words = num_to_words_indian(round(net_amount))
@@ -173,7 +173,8 @@ def add_multi_line_invoice(invoice_number, vendor_id, line_items):
             sgst=sgst,
             net_amount=net_amount,
             amount_in_words=words,
-            vehicle=Vehicle.objects.get(id=first_item['vehicle_id'])
+            vehicle=Vehicle.objects.get(id=first_item['vehicle_id']),
+            bank_details=BankDetail.objects.get(id=bank_detail) if bank_detail else None
         )
         
         # Attach line items to invoice object (for template usage)
@@ -200,4 +201,82 @@ def add_multi_line_invoice(invoice_number, vendor_id, line_items):
         
     except Exception as e:
         print(f"Error creating multi-line invoice: {e}")
+        print(f"Error type: {type(e).__name__}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        return None
+
+# Also update your original add_data_billing function for consistency
+def add_data_billing(invoice_number, chalan_number, rate, quantity, date_str, vendor_id, plant_id, product_id, company_id, vehicle_id, gst_rate=None):
+    try:
+        if date_str:
+            date_str = datetime.strptime(date_str, "%Y-%m-%d").date()
+        else:
+            date_str = date.today()
+    
+        billing = Billing.objects.create(
+            invoice_number=invoice_number, 
+            chalan_number=chalan_number, 
+            rate=rate, 
+            quantity=quantity, 
+            date=date_str, 
+            vendor_id=vendor_id, 
+            plant_id=plant_id, 
+            product_id=product_id, 
+            company_id=company_id, 
+            vehicle_id=vehicle_id
+        )
+
+        vendor = Vendor.objects.get(id=vendor_id)
+        plant = Plant.objects.get(id=plant_id)
+        product = Product.objects.get(id=product_id)
+        company = Company.objects.get(id=company_id)
+        vehicle = Vehicle.objects.get(id=vehicle_id)
+
+        rate = Decimal(rate)  # Convert rate to Decimal
+        quantity = Decimal(quantity)  # Convert quantity to Decimal
+        total_amount = rate * quantity
+        
+        # Use dynamic GST rate if provided, otherwise default to 5% (2.5% each)
+        if gst_rate:
+            try:
+                gst_rate_clean = clean_gst_rate(gst_rate)
+                gst_decimal = Decimal(gst_rate_clean)
+                cgst = total_amount * (gst_decimal / 2) / 100
+                sgst = total_amount * (gst_decimal / 2) / 100
+            except:
+                cgst = total_amount * Decimal('0.025')  # 2.5% fallback
+                sgst = total_amount * Decimal('0.025')  # 2.5% fallback
+        else:
+            cgst = total_amount * Decimal('0.025')  # 2.5%
+            sgst = total_amount * Decimal('0.025')  # 2.5%
+
+        # Calculate net_amount
+        net_amount = Decimal(total_amount) + cgst + sgst
+
+        # Convert net_amount to words
+        words = num_to_words_indian(round(net_amount))
+        
+        # Create the Invoice object
+        invoice = Invoice.objects.create(
+            invoice_number=invoice_number,
+            rate=rate,
+            quantity=quantity,
+            date=date_str,
+            vendor=vendor,
+            plant=plant,
+            product=product,
+            chalan_number=chalan_number,
+            company=company,
+            total_amount=total_amount,
+            cgst=cgst,
+            sgst=sgst,
+            net_amount=net_amount,
+            amount_in_words=words,
+            vehicle=vehicle
+        )
+        # Save the object to the database
+        return invoice
+    except Exception as e:
+        print(f"Error adding data: {e}")
         return None
