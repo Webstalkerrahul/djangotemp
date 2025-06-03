@@ -22,6 +22,7 @@ class BankDetail(models.Model):
     branch = models.CharField(max_length=255, blank=True, null=True)
     account_holder_name = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.bank_name}"

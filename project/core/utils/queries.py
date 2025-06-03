@@ -43,7 +43,8 @@ def get_gst():
 def get_bank_details(logged_in_user):
     if logged_in_user.is_superuser:
         return BankDetail.objects.all()
-    return BankDetail.objects.filter(company=logged_in_user.company)
+    return BankDetail.objects.filter(user=logged_in_user)
+
 def clean_gst_rate(gst_rate):
     """
     Clean and validate GST rate input
@@ -68,7 +69,7 @@ def clean_gst_rate(gst_rate):
     except ValueError:
         return "12"
 
-def add_multi_line_invoice(invoice_number, vendor_id, line_items, gst_rate, bank_detail):
+def add_multi_line_invoice(invoice_number, vendor_id, line_items, gst_rate, bank_detail, plant):
     """
     Create an invoice with multiple line items
     
@@ -164,7 +165,7 @@ def add_multi_line_invoice(invoice_number, vendor_id, line_items, gst_rate, bank
             quantity=sum(Decimal(str(item['quantity'])) for item in line_items),  # Total quantity
             date=first_item_date,  # Using first item's date
             vendor=vendor,
-            plant=Plant.objects.first(),  # You might want to handle this differently
+            plant=Plant.objects.get(id=plant),  # You might want to handle this differently
             product=Product.objects.get(id=first_item['product_id']),
             chalan_number=first_item['chalan_number'],  # Using first item's challan
             company=company,

@@ -179,6 +179,7 @@ def generate_invoice(request):
             return render(request, 'billing.html', {'error': 'Invalid line items format'})
 
         gst_rate = request.POST.get('gst_rate',0)
+        plant = request.POST.get('plant',"no plant")
         # Create invoice with multiple line items
         invoice = queries.add_multi_line_invoice(
             invoice_number, 
@@ -186,6 +187,7 @@ def generate_invoice(request):
             line_items,
             gst_rate = gst_rate,
             bank_detail = request.POST.get('bank_detail', None),
+            plant= plant,
         )
         
         if invoice is None:
