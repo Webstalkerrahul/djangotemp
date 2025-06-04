@@ -69,7 +69,7 @@ def clean_gst_rate(gst_rate):
     except ValueError:
         return "12"
 
-def add_multi_line_invoice(invoice_number, vendor_id, line_items, gst_rate, bank_detail, plant):
+def add_multi_line_invoice(invoice_number, vendor_id, line_items, gst_rate, bank_detail):
     """
     Create an invoice with multiple line items
     
@@ -105,6 +105,7 @@ def add_multi_line_invoice(invoice_number, vendor_id, line_items, gst_rate, bank
             # Get related objects
             vehicle = Vehicle.objects.get(id=item_data['vehicle_id'])
             product = Product.objects.get(id=item_data['product_id'])
+            plant = Plant.objects.get(id=item_data['plant_id'])
             
             # Calculate amount
             quantity = Decimal(str(item_data['quantity']))
@@ -119,6 +120,7 @@ def add_multi_line_invoice(invoice_number, vendor_id, line_items, gst_rate, bank
                 'chalan_number': item_data['chalan_number'],
                 'vehicle': vehicle,
                 'product': product,
+                'plant': plant,
                 'quantity': quantity,
                 'rate': rate,
                 'amount': amount
@@ -165,7 +167,7 @@ def add_multi_line_invoice(invoice_number, vendor_id, line_items, gst_rate, bank
             quantity=sum(Decimal(str(item['quantity'])) for item in line_items),  # Total quantity
             date=first_item_date,  # Using first item's date
             vendor=vendor,
-            plant=Plant.objects.get(id=plant),  # You might want to handle this differently
+            plant=Plant.objects.get(id=first_item['plant_id']),  # You might want to handle this differently
             product=Product.objects.get(id=first_item['product_id']),
             chalan_number=first_item['chalan_number'],  # Using first item's challan
             company=company,
