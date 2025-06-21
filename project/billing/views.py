@@ -166,7 +166,7 @@ def generate_invoice(request):
         # Get basic invoice data
         invoice_number = request.POST.get('invoice_number')
         vendor_id = request.POST.get('vendor')
-        
+        company_id = request.POST.get('company')
         # Get line items data (assuming JSON format from frontend)
         line_items_json = request.POST.get('line_items')
         
@@ -177,10 +177,10 @@ def generate_invoice(request):
             line_items = json.loads(line_items_json)
         except json.JSONDecodeError:
             return render(request, 'billing.html', {'error': 'Invalid line items format'})
-
         gst_rate = request.POST.get('gst_rate',0)
         # Create invoice with multiple line items
         invoice = queries.add_multi_line_invoice(
+            request.user,
             invoice_number, 
             vendor_id, 
             line_items,
@@ -194,7 +194,6 @@ def generate_invoice(request):
             flag = request.user.username == 'sahil'
             response = render_invoice_pdf(invoice, flag, gst_rate)
             return response
-    
     # GET request - show form
     vendor = queries.get_vendor(request.user)
     product = queries.get_product(request.user)
@@ -219,7 +218,12 @@ def generate_invoice(request):
 def render_invoice_pdf(invoice, flag, gst_rate):
     date_obj = datetime.now()
     formatted_datetime = date_obj.strftime("%d-%m-%Y-%H-%M")
-    logo_path = os.path.join(settings.BASE_DIR, 'billing/static', 'logo.png')
+    if "rushika" in str(invoice.company.name).lower():
+        logo_path = os.path.join(settings.BASE_DIR, 'billing/static', 'rushika_logo.png')
+        top_quote = "Jai ShreeKrishna"
+    else:
+        logo_path = os.path.join(settings.BASE_DIR, 'billing/static', 'logo.png')
+        top_quote = "SHREE GANESHAY NAMAH"
     
     with open(logo_path, "rb") as image_file:
         encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
@@ -231,6 +235,7 @@ def render_invoice_pdf(invoice, flag, gst_rate):
         "cgst_rate": float(gst_rate)/2,
         "sgst_rate":  float(gst_rate)/2,
         "total_gst_rate": gst_rate,
+        "top_quote": top_quote,
     }
     
     # Render template to string

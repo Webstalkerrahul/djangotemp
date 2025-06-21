@@ -69,7 +69,7 @@ def clean_gst_rate(gst_rate):
     except ValueError:
         return "12"
 
-def add_multi_line_invoice(invoice_number, vendor_id, line_items, gst_rate, bank_detail):
+def add_multi_line_invoice(user, invoice_number, vendor_id, line_items, gst_rate, bank_detail):
     """
     Create an invoice with multiple line items
     
@@ -155,7 +155,8 @@ def add_multi_line_invoice(invoice_number, vendor_id, line_items, gst_rate, bank
         
         # Get company (assuming first available company for now)
         # You might want to pass company_id as a parameter
-        company = Company.objects.first()
+        company = Company.objects.filter(user=user).first()
+        print(company.name)
         
         # Create main invoice record using first line item's data
         first_item = line_items[0]
