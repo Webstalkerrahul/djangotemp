@@ -14,7 +14,7 @@
                 <p class="text-red-500 text-center">{{ message }}</p>
             {% endfor %}
         {% endif %}
-        <form method="post">
+        <form method="post" action="{% url 'login' %}">
             {% csrf_token %}
             <div class="mb-4">
                 <label class="block text-gray-700">Username</label>
