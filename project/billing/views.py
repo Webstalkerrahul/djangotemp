@@ -1,6 +1,7 @@
 
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
+from django.contrib import messages
 from django.template.loader import render_to_string
 from playwright.sync_api import sync_playwright
 import tempfile
@@ -14,9 +15,11 @@ from twilio.rest import Client
 from django.core.cache import cache
 from django.conf import settings
 import json
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, csrf_protect   
 from core.utils.sql import invoice_helper
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .models import Invoice, Vendor, Company, Plant, Vehicle, Product
+from django.views.decorators.http import require_POST
 
 @login_required
 @csrf_exempt
@@ -186,9 +189,9 @@ def home(request):
     print("Home page accessed")
     return render(request, "home.html")
 
-
+@csrf_exempt 
 def view_invoices(request):
-    invoices = invoice_helper.get_invoice_data(request)
+    invoices, total = invoice_helper.get_invoice_data(request)
     
     # Set up pagination - 10 items per page
     paginator = Paginator(invoices, 10)
@@ -206,5 +209,121 @@ def view_invoices(request):
     data = {
         "invoices": invoices_page,
         "request": request,
+        "total": total,
+        "avg_value": total / paginator.count if paginator.count > 0 else 0,
     }
     return render(request, "invoice_display.html", data)
+
+@csrf_exempt 
+def edit_invoice(request, invoice_id):
+    """
+    View to edit an existing invoice
+    """
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    
+    if request.method == 'POST':
+        try:
+            # Update invoice fields
+            invoice.chalan_number = request.POST.get('chalan_number', '')
+            
+            # Update foreign key relationships if needed
+            vendor_id = request.POST.get('vendor')
+            if vendor_id:
+                invoice.vendor = get_object_or_404(Vendor, id=vendor_id)
+            
+            company_id = request.POST.get('company')
+            if company_id:
+                invoice.company = get_object_or_404(Company, id=company_id)
+            
+            plant_id = request.POST.get('plant')
+            if plant_id:
+                invoice.plant = get_object_or_404(Plant, id=plant_id)
+            
+            vehicle_id = request.POST.get('vehicle')
+            if vehicle_id:
+                invoice.vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+            
+            product_id = request.POST.get('product')
+            if product_id:
+                invoice.product = get_object_or_404(Product, id=product_id)
+            
+            # Update numeric fields
+            invoice.quantity = float(request.POST.get('quantity', 0))
+            invoice.rate = float(request.POST.get('rate', 0))
+            invoice.net_amount = float(request.POST.get('net_amount', 0)) if request.POST.get('net_amount') else None
+            invoice.cgst = float(request.POST.get('cgst', 0)) if request.POST.get('cgst') else None
+            invoice.sgst = float(request.POST.get('sgst', 0)) if request.POST.get('sgst') else None
+            invoice.total_amount = float(request.POST.get('total_amount', 0))
+            
+            # Update date
+            from datetime import datetime
+            date_str = request.POST.get('date')
+            if date_str:
+                invoice.date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            
+            # Save the updated invoice
+            invoice.save()
+            
+            messages.success(request, f'Invoice #{invoice.invoice_number} has been updated successfully!')
+            return redirect('billing:view_invoices')
+            
+        except Exception as e:
+            messages.error(request, f'Error updating invoice: {str(e)}')
+    
+    # Get all related objects for dropdowns
+    context = {
+        'invoice': invoice,
+        'vendor' : queries.get_vendor(request.user),
+        'product' : queries.get_product(request.user),
+        'company' : queries.get_company(request.user),
+        'plant' : queries.get_plant(request.user),
+        'vehicle' : queries.get_vehicle(request.user),
+        'gst' : queries.get_gst(),
+        'bank_details' :  queries.get_bank_details(request.user),
+       }
+    
+    return render(request, 'edit_invoice.html', context)
+
+@csrf_exempt 
+@require_POST     
+def delete_invoice(request, invoice_id):
+    """
+    View to delete an invoice
+    """
+    print(f"Deleting invoice: {invoice_id}")
+    invoice = get_object_or_404(Invoice, id=invoice_id)
+    
+    
+    if request.method == 'POST':
+        try:
+            invoice_number = invoice.invoice_number
+            invoice.delete()
+            messages.success(request, f'Invoice #{invoice_number} has been deleted successfully!')
+        except Exception as e:
+            messages.error(request, f'Error deleting invoice: {str(e)}')
+    else:
+        # If GET request, redirect back to invoices list
+        messages.warning(request, 'Invalid request method for delete operation.')
+    
+    return redirect('billing:view_invoices')
+
+@csrf_exempt 
+@require_POST
+def delete_invoice_ajax(request, invoice_id):
+    """
+    AJAX view to delete an invoice (optional - for AJAX requests)
+    """
+    try:
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+        invoice_number = invoice.invoice_number
+        invoice.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Invoice #{invoice_number} has been deleted successfully!'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error deleting invoice: {str(e)}'
+        }, status=400)

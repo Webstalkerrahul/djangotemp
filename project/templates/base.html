@@ -11,40 +11,131 @@
   <!-- Flowbite CSS and JS -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.js"></script>
+
+  <style>
+    /* Custom CSS for enhanced animations and effects */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .dark .glass-effect {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .dark .gradient-bg {
+      background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    }
+
+    .sidebar-gradient {
+      background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+
+    .dark .sidebar-gradient {
+      background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+    }
+
+    .hover-lift {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .hover-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .nav-item {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .nav-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .nav-item:hover::before {
+      left: 100%;
+    }
+
+    .floating-animation {
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+
+    .text-gradient {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .sidebar-enter {
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(0); }
+    }
+  </style>
 </head>
-<body class="bg-white dark:bg-gray-900 transition-colors duration-300">
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-all duration-500 min-h-screen">
 
 <!-- Header with Hamburger Menu and Theme Toggle -->
-<div class="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
+<div class="fixed top-0 left-0 right-0 z-50 glass-effect transition-all duration-500 shadow-lg">
   <div class="flex items-center justify-between p-4">
     <!-- Hamburger Menu Button -->
     <button 
       id="hamburger-toggle"
       type="button" 
-      class="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600 transition-colors duration-300">
+      class="inline-flex items-center p-3 text-sm text-gray-600 rounded-xl hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:text-gray-300 dark:hover:bg-gray-700/50 dark:focus:ring-blue-400/50 transition-all duration-300 hover-lift">
       <span class="sr-only">Open sidebar</span>
       <!-- Hamburger Icon -->
-      <svg id="hamburger-icon" class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+      <svg id="hamburger-icon" class="w-6 h-6 transition-transform duration-300" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
         <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
       </svg>
       <!-- Close Icon (hidden by default) -->
-      <svg id="close-icon" class="w-6 h-6 hidden" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+      <svg id="close-icon" class="w-6 h-6 hidden transition-transform duration-300" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
       </svg>
     </button>
 
     <!-- Page Title -->
-    <h1 class="text-xl font-semibold text-gray-900 dark:text-white">Welcome, {{user}}</h1>
+    <h1 class="text-2xl font-bold text-gradient">Welcome, {{user}}</h1>
 
     <!-- Theme Toggle Button -->
     <button id="theme-toggle" type="button" 
-      class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm p-2.5 transition-colors duration-300">
+      class="text-gray-600 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-400/50 rounded-xl text-sm p-3 transition-all duration-300 hover-lift ">
       <!-- Sun icon (for light mode) -->
-      <svg id="theme-toggle-light-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+      <svg id="theme-toggle-light-icon" class="w-6 h-6 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
       </svg>
       <!-- Moon icon (for dark mode) -->
-      <svg id="theme-toggle-dark-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+      <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
         <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
       </svg>
     </button>
@@ -52,128 +143,340 @@
 </div>
 
 <!-- Sidebar Overlay -->
-<div id="sidebar-overlay" class="fixed inset-0 z-30 bg-black bg-opacity-50 hidden transition-opacity duration-300"></div>
+<div id="sidebar-overlay" class="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm hidden transition-all duration-300" ></div>
 
 <!-- Sidebar -->
 <aside id="sidebar-multi-level-sidebar"
-  class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full transform"
+  class="fixed top-0 left-0 z-40 w-72 h-screen transition-all duration-300 -translate-x-full transform shadow-2xl"
   aria-label="Sidebar">
-  <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800 transition-colors duration-300">
+  <div class="h-full px-4 py-6 overflow-y-auto sidebar-gradient mt-20">
     
     <!-- Logo Section -->
-    <div class="flex items-center mb-6 p-2">
-      <div class="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg mr-3">
-        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+    <div class="flex items-center mb-8 p-4 rounded-2xl glass-effect hover-lift">
+      <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mr-4 shadow-lg floating-animation">
+        <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
           <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
         </svg>
       </div>
       <div>
-        <h2 class="text-lg font-bold text-gray-900 dark:text-white">AdminPro</h2>
-        <p class="text-xs text-gray-500 dark:text-gray-400">Dashboard</p>
+        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Genric Invoice</h2>
+        <!-- <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Professional Dashboard</p> -->
       </div>
     </div>
 
     <!-- Navigation Menu -->
-    <ul class="space-y-2 font-medium">
+    <ul class="space-y-3 font-medium">
       <li>
-        <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group transition-colors duration-300">
-          <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-300"
-            fill="currentColor" viewBox="0 0 22 21" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M16.975 11H10V4.025a1 1 0 0 0-1.066-.998 8.5 8.5 0 1 0 9.039 9.039.999.999 0 0 0-1-1.066h.002Z" />
-            <path d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z" />
-          </svg>
-          <span class="ms-3">Dashboard</span>
+        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl dark:text-white hover:bg-white/50 dark:hover:bg-gray-700/50 group transition-all duration-300 hover-lift shadow-sm">
+          <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-5 h-5 text-white"
+              fill="currentColor" viewBox="0 0 22 21" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M16.975 11H10V4.025a1 1 0 0 0-1.066-.998 8.5 8.5 0 1 0 9.039 9.039.999.999 0 0 0-1-1.066h.002Z" />
+              <path d="M12.5 0c-.157 0-.311.01-.565.027A1 1 0 0 0 11 1.02V10h8.975a1 1 0 0 0 1-.935c.013-.188.028-.374.028-.565A8.51 8.51 0 0 0 12.5 0Z" />
+            </svg>
+          </div>
+          <span class="font-semibold">Dashboard</span>
         </a>
       </li>
 
       <!-- Collapsible menu -->
       <li>
         <button type="button"
-          class="flex items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+          class="nav-item flex items-center w-full p-4 text-gray-800 rounded-2xl group hover:bg-white/50 dark:text-white dark:hover:bg-gray-700/50 transition-all duration-300 hover-lift shadow-sm"
           aria-controls="dropdown-example" data-collapse-toggle="dropdown-example">
-          <svg class="shrink-0 w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-300"
-            fill="currentColor" viewBox="0 0 18 21" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path
-              d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z" />
-          </svg>
-          <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Billing</span>
-          <svg class="w-3 h-3" fill="none" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-5 h-5 text-white"
+              fill="currentColor" viewBox="0 0 18 21" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path
+                d="M15 12a1 1 0 0 0 .962-.726l2-7A1 1 0 0 0 17 3H3.77L3.175.745A1 1 0 0 0 2.208 0H1a1 1 0 0 0 0 2h.438l.6 2.255v.019l2 7 .746 2.986A3 3 0 1 0 9 17a2.966 2.966 0 0 0-.184-1h2.368c-.118.32-.18.659-.184 1a3 3 0 1 0 3-3H6.78l-.5-2H15Z" />
+            </svg>
+          </div>
+          <span class="flex-1 text-left font-semibold">Billing</span>
+          <svg class="w-4 h-4 transition-transform duration-300 group-hover:rotate-180" fill="none" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="m1 1 4 4 4-4" />
           </svg>
         </button>
-        <ul id="dropdown-example" class="hidden py-2 space-y-2">
+        <ul id="dropdown-example" class="hidden py-2 space-y-2 ml-6 mt-2">
           <li>
             <a href="{% url 'billing:generate_invoice' %}"
-              class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Generate Bill</a>
+              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
+              <div class="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mr-3"></div>
+              Generate Bill
+            </a>
           </li>
           <li>
             <a href="#"
-              class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Billing</a>
+              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
+              <div class="w-2 h-2 bg-gradient-to-r from-green-400 to-teal-500 rounded-full mr-3"></div>
+              Billing
+            </a>
           </li>
           <li>
             <a href="{% url 'billing:view_invoices' %}"
-              class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700">Invoice</a>
+              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
+              <div class="w-2 h-2 bg-gradient-to-r from-orange-400 to-red-500 rounded-full mr-3"></div>
+              Invoice
+            </a>
+          </li>
+        </ul>
+      </li>
+
+       <!-- Collapsible Vender Plant management menu -->
+      <li>
+        <button type="button"
+          class="nav-item flex items-center w-full p-4 text-gray-800 rounded-2xl group hover:bg-white/50 dark:text-white dark:hover:bg-gray-700/50 transition-all duration-300 hover-lift shadow-sm"
+          aria-controls=""vendor-plant" data-collapse-toggle="vendor-plant">
+          <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+          </svg>
+
+          </div>
+          <span class="flex-1 text-left font-semibold">Vendor Plant Management</span>
+          <svg class="w-4 h-4 transition-transform duration-300 group-hover:rotate-180" fill="none" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m1 1 4 4 4-4" />
+          </svg>
+        </button>
+        <ul id="vendor-plant" class="hidden py-2 space-y-2 ml-6 mt-2">
+          <li>
+            <a href="{% url 'vendor:display_vendors' %}"
+              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
+              <div class="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mr-3"></div>
+              Vendors
+            </a>
+          </li>
+          <li>
+            <a href="#"
+              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
+              <div class="w-2 h-2 bg-gradient-to-r from-green-400 to-teal-500 rounded-full mr-3"></div>
+              Plants
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'billing:view_invoices' %}"
+              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
+              <div class="w-2 h-2 bg-gradient-to-r from-orange-400 to-red-500 rounded-full mr-3"></div>
+              Invoice
+            </a>
           </li>
         </ul>
       </li>
 
       <!-- More sidebar links -->
       <li>
-        <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group transition-colors duration-300">
-          <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-300"
-            fill="currentColor" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Z" />
-            <path d="M8 10H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z" />
-          </svg>
-          <span class="flex-1 ms-3 whitespace-nowrap">Users</span>
+        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl dark:text-white hover:bg-white/50 dark:hover:bg-gray-700/50 group transition-all duration-300 hover-lift shadow-sm">
+          <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-5 h-5 text-white"
+              fill="currentColor" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Z" />
+              <path d="M8 10H5a5.006 5.006 0 0 0-5 5v2a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2a5.006 5.006 0 0 0-5-5Z" />
+            </svg>
+          </div>
+          <span class="font-semibold">Users</span>
         </a>
       </li>
 
       <li>
-        <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group transition-colors duration-300">
-          <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-300"
-            fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-          </svg>
-          <span class="flex-1 ms-3 whitespace-nowrap">Analytics</span>
+        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl dark:text-white hover:bg-white/50 dark:hover:bg-gray-700/50 group transition-all duration-300 hover-lift shadow-sm">
+          <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-5 h-5 text-white"
+              fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+          </div>
+          <span class="font-semibold">Analytics</span>
         </a>
       </li>
 
       <li>
-        <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group transition-colors duration-300">
-          <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-300"
-            fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
-          </svg>
-          <span class="flex-1 ms-3 whitespace-nowrap">Reports</span>
+        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl dark:text-white hover:bg-white/50 dark:hover:bg-gray-700/50 group transition-all duration-300 hover-lift shadow-sm">
+          <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-teal-400 to-teal-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-5 h-5 text-white"
+              fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <span class="font-semibold">Reports</span>
         </a>
       </li>
 
       <li>
-        <a href="#" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group transition-colors duration-300">
-          <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-300"
-            fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
-          </svg>
-          <span class="flex-1 ms-3 whitespace-nowrap">Settings</span>
+        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl dark:text-white hover:bg-white/50 dark:hover:bg-gray-700/50 group transition-all duration-300 hover-lift shadow-sm">
+          <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-5 h-5 text-white"
+              fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <span class="font-semibold">Settings</span>
         </a>
       </li>
 
        <li>
-        <a href="{% url 'logout' %}" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group transition-colors duration-300">
-          <svg class="w-5 h-5 text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors duration-300"
-            fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" />
-          </svg>
-          <span class="flex-1 ms-3 whitespace-nowrap">Logout</span>
+        <a href="{% url 'logout' %}" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl dark:text-white hover:bg-red-50 dark:hover:bg-red-900/20 group transition-all duration-300 hover-lift shadow-sm">
+          <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-red-400 to-red-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-5 h-5 text-white"
+              fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <span class="font-semibold">Logout</span>
         </a>
       </li>
     </ul>
   </div>
 </aside>
-{% block content %}{% endblock content %}
 
+<!-- Main Content Area -->
+<div id="main-content" class="pt-20 transition-all duration-300">
+  {% block content %}
+  <!-- Demo Content -->
+  <div class="p-8">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Stats Cards -->
+        <div class="glass-effect p-6 rounded-2xl hover-lift">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
+              <p class="text-3xl font-bold text-gray-900 dark:text-white">2,543</p>
+            </div>
+            <div class="p-3 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div class="glass-effect p-6 rounded-2xl hover-lift">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Revenue</p>
+              <p class="text-3xl font-bold text-gray-900 dark:text-white">$45,265</p>
+            </div>
+            <div class="p-3 bg-gradient-to-br from-green-400 to-green-600 rounded-xl">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div class="glass-effect p-6 rounded-2xl hover-lift">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Orders</p>
+              <p class="text-3xl font-bold text-gray-900 dark:text-white">1,428</p>
+            </div>
+            <div class="p-3 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 2L3 7v11a1 1 0 001 1h12a1 1 0 001-1V7l-7-5z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div class="glass-effect p-6 rounded-2xl hover-lift">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Growth</p>
+              <p class="text-3xl font-bold text-gray-900 dark:text-white">+12.5%</p>
+            </div>
+            <div class="p-3 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Section -->
+      <div class="glass-effect p-8 rounded-2xl mb-8 hover-lift">
+        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Analytics Overview</h3>
+        <div class="h-64 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-xl flex items-center justify-center">
+          <p class="text-gray-500 dark:text-gray-400 text-lg">Chart placeholder - Your analytics will appear here</p>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass-effect p-6 rounded-2xl hover-lift">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Activity</h3>
+          <div class="space-y-4">
+            <div class="flex items-center space-x-4">
+              <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="font-semibold text-gray-900 dark:text-white">New order completed</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">2 minutes ago</p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-4">
+              <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6z"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="font-semibold text-gray-900 dark:text-white">New user registered</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">5 minutes ago</p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-4">
+              <div class="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="font-semibold text-gray-900 dark:text-white">Payment received</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">10 minutes ago</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-effect p-6 rounded-2xl hover-lift">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+          <div class="grid grid-cols-2 gap-4">
+            <button class="p-4 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover-lift shadow-lg">
+              <svg class="w-8 h-8 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="text-sm font-semibold">Add User</span>
+            </button>
+            <button class="p-4 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 hover-lift shadow-lg">
+              <svg class="w-8 h-8 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"></path>
+              </svg>
+              <span class="text-sm font-semibold">New Invoice</span>
+            </button>
+            <button class="p-4 bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 hover-lift shadow-lg">
+              <svg class="w-8 h-8 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="text-sm font-semibold">Generate Report</span>
+            </button>
+            <button class="p-4 bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-300 hover-lift shadow-lg">
+              <svg class="w-8 h-8 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="text-sm font-semibold">Settings</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endblock content %}
+</div>
 
 <script>
 // Theme toggle functionality
@@ -195,7 +498,13 @@ if (currentTheme === 'dark') {
 }
 
 themeToggleBtn.addEventListener('click', function() {
-    // Toggle icons
+    // Add rotation animation to button
+    themeToggleBtn.style.transform = 'rotate(360deg)';
+    setTimeout(() => {
+        themeToggleBtn.style.transform = 'rotate(0deg)';
+    }, 300);
+
+    // Toggle icons with fade effect
     themeToggleDarkIcon.classList.toggle('hidden');
     themeToggleLightIcon.classList.toggle('hidden');
 
@@ -221,23 +530,31 @@ function toggleSidebar() {
     sidebarOpen = !sidebarOpen;
     
     if (sidebarOpen) {
-        // Open sidebar
+        // Open sidebar with enhanced animations
         sidebar.classList.remove('-translate-x-full');
+        sidebar.classList.add('sidebar-enter');
         sidebarOverlay.classList.remove('hidden');
         hamburgerIcon.classList.add('hidden');
         closeIcon.classList.remove('hidden');
         
+        // Add rotation animation to hamburger button
+        hamburgerToggle.style.transform = 'rotate(90deg)';
+        
         // On larger screens, push content
         if (window.innerWidth >= 768) {
-            mainContent.classList.add('ml-64');
+            mainContent.classList.add('ml-72');
         }
     } else {
         // Close sidebar
         sidebar.classList.add('-translate-x-full');
+        sidebar.classList.remove('sidebar-enter');
         sidebarOverlay.classList.add('hidden');
         hamburgerIcon.classList.remove('hidden');
         closeIcon.classList.add('hidden');
-        mainContent.classList.remove('ml-64');
+        mainContent.classList.remove('ml-72');
+        
+        // Reset hamburger button rotation
+        hamburgerToggle.style.transform = 'rotate(0deg)';
     }
 }
 
@@ -259,21 +576,89 @@ document.addEventListener('click', function(event) {
 // Handle window resize
 window.addEventListener('resize', function() {
     if (window.innerWidth >= 768 && sidebarOpen) {
-        mainContent.classList.add('ml-64');
+        mainContent.classList.add('ml-72');
         sidebarOverlay.classList.add('hidden');
     } else if (window.innerWidth < 768) {
-        mainContent.classList.remove('ml-64');
+        mainContent.classList.remove('ml-72');
         if (sidebarOpen) {
             sidebarOverlay.classList.remove('hidden');
         }
     }
 });
 
-// Initialize sidebar state based on screen size
-// if (window.innerWidth >= 768) {
-//     // On desktop, show sidebar by default
-//     toggleSidebar();
-// }
+// Add smooth scroll behavior
+document.documentElement.style.scrollBehavior = 'smooth';
+
+// Add intersection observer for animations
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+// Observe all cards for entrance animations
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.glass-effect');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = `opacity 0.6s ease ${index * 0.1}s, transform 0.6s ease ${index * 0.1}s`;
+        observer.observe(card);
+    });
+});
+
+// Add ripple effect to buttons
+document.addEventListener('click', function(e) {
+    if (e.target.matches('button') || e.target.closest('button')) {
+        const button = e.target.matches('button') ? e.target : e.target.closest('button');
+        const ripple = document.createElement('span');
+        const rect = button.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = e.clientX - rect.left - size / 2;
+        const y = e.clientY - rect.top - size / 2;
+        
+        ripple.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            left: ${x}px;
+            top: ${y}px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        `;
+        
+        button.style.position = 'relative';
+        button.style.overflow = 'hidden';
+        button.appendChild(ripple);
+        
+        setTimeout(() => {
+            ripple.remove();
+        }, 600);
+    }
+});
+
+// Add CSS animation for ripple effect
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
 </script>
 
 </body>

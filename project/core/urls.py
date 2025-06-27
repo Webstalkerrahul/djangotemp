@@ -24,4 +24,5 @@ urlpatterns = [
     path("auth/", include("authentication.urls")),
     path("", views.home, name="home"),  # Home page URL
     path("dashboard/", core_views.dashboard, name="dashboard"),  # Home page URL
+    path('vendor/', include('vendor.urls')),
 ]

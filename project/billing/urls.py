@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import generate_invoice, serve_temp_pdf, view_invoices
+from .views import generate_invoice, serve_temp_pdf, view_invoices, delete_invoice, edit_invoice
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -11,7 +11,8 @@ urlpatterns = [
     path('billing/temp-pdf/<str:cache_key>/', serve_temp_pdf, name='serve_temp_pdf'),
     # path('pdf/', generate_pdf, name='generate_pdf'),  # Example URL for PDF generation
     path('billing/view_invoices', view_invoices, name='view_invoices'),
-    # path('invoices/ajax/', load_invoices_ajax, name='load_invoices_ajax'),
+    path('billing/delete_invoice/<int:invoice_id>/', delete_invoice, name='delete_invoice'),
+    path('billing/edit_invoice/<int:invoice_id>/', edit_invoice, name='edit_invoice'),  # New edit URL
 
 ]
 if settings.DEBUG:
