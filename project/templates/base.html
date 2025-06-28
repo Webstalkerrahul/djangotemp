@@ -206,13 +206,6 @@
             </a>
           </li>
           <li>
-            <a href="#"
-              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
-              <div class="w-2 h-2 bg-gradient-to-r from-green-400 to-teal-500 rounded-full mr-3"></div>
-              Billing
-            </a>
-          </li>
-          <li>
             <a href="{% url 'billing:view_invoices' %}"
               class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
               <div class="w-2 h-2 bg-gradient-to-r from-orange-400 to-red-500 rounded-full mr-3"></div>
@@ -248,17 +241,10 @@
             </a>
           </li>
           <li>
-            <a href="#"
+            <a href="{% url 'vendor:display_plants' %}"
               class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
               <div class="w-2 h-2 bg-gradient-to-r from-green-400 to-teal-500 rounded-full mr-3"></div>
               Plants
-            </a>
-          </li>
-          <li>
-            <a href="{% url 'billing:view_invoices' %}"
-              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
-              <div class="w-2 h-2 bg-gradient-to-r from-orange-400 to-red-500 rounded-full mr-3"></div>
-              Invoice
             </a>
           </li>
         </ul>
