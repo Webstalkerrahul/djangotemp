@@ -10,13 +10,22 @@ class Billing(models.Model):
     rate = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateField(default=date.today, blank=True, null=True)
-    vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT)
-    plant = models.ForeignKey(Plant, on_delete=models.PROTECT)
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT,blank=True, null=True)
+    vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT, db_column='vendor_id')
+    plant = models.ForeignKey(Plant, on_delete=models.PROTECT, db_column='plant_id')
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, db_column='product_id')
+    vehicle = models.ForeignKey(
+        Vehicle, 
+        on_delete=models.PROTECT, 
+        blank=True, 
+        null=True,
+        db_column='vehicle_id'  # Explicit column mapping
+    )
     chalan_number = models.CharField(max_length=100)
-    company = models.ForeignKey(Company, on_delete=models.PROTECT)
+    company = models.ForeignKey(Company, on_delete=models.PROTECT, db_column='company_id')
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'billing_billing'  # Explicit table name
 
     def __str__(self):
         return f'Invoice {self.invoice_number} - Amount: {self.rate}'

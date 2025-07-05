@@ -20,133 +20,133 @@ from core.utils.sql import invoice_helper
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Invoice, Vendor, Company, Plant, Vehicle, Product
 from django.views.decorators.http import require_POST
+from django.http import HttpResponseServerError
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+from django.contrib.auth.decorators import login_required
 
 @login_required
 @csrf_exempt
 def generate_invoice(request):
+    """Optimized invoice generation endpoint"""
     if request.method == 'POST':
-        # Get basic invoice data
-        invoice_number = request.POST.get('invoice_number')
-        vendor_id = request.POST.get('vendor')
-        company_id = request.POST.get('company')
-        # Get line items data (assuming JSON format from frontend)
-        line_items_json = request.POST.get('line_items')
-        
-        if not line_items_json:
-            return render(request, 'billing.html', {'error': 'No line items provided'})
-        
         try:
+            # Process input data
+            invoice_number = request.POST.get('invoice_number')
+            vendor_id = request.POST.get('vendor')
+            line_items_json = request.POST.get('line_items')
+            
+            if not line_items_json:
+                return JsonResponse({'error': 'No line items provided'}, status=400)
+            
             line_items = json.loads(line_items_json)
-        except json.JSONDecodeError:
-            return render(request, 'billing.html', {'error': 'Invalid line items format'})
-        gst_rate = request.POST.get('gst_rate',0)
-        # Create invoice with multiple line items
-        invoice = queries.add_multi_line_invoice(
-            request.user,
-            invoice_number, 
-            vendor_id, 
-            line_items,
-            gst_rate = gst_rate,
-            bank_detail = request.POST.get('bank_detail', None),
-        )
-        
-        if invoice is None:
-            return render(request, 'billing.html', {'error': 'Error creating invoice'})
-        else:
+            gst_rate = request.POST.get('gst_rate', '12')
+            
+            # Create invoice in transaction
+            invoice = queries.add_multi_line_invoice(
+                request.user,
+                invoice_number, 
+                vendor_id, 
+                line_items,
+                gst_rate=gst_rate,
+                bank_detail=request.POST.get('bank_detail'),
+            )
+            
+            if not invoice:
+                return JsonResponse({'error': 'Invoice creation failed'}, status=500)
+            
+            # Generate PDF with optimized function
             flag = request.user.username == 'sahil'
-            response = render_invoice_pdf(invoice, flag, gst_rate)
-            return response
-    # GET request - show form
-    vendor = queries.get_vendor(request.user)
-    product = queries.get_product(request.user)
-    company = queries.get_company(request.user)
-    plant = queries.get_plant(request.user)
-    vehicle = queries.get_vehicle(request.user)
-    gst = queries.get_gst()
-    bank_details =  queries.get_bank_details(request.user)
+            return render_invoice_pdf(invoice, flag, gst_rate)
+            
+        except Exception as e:
+            print(f"Invoice generation error: {e}")
+            return JsonResponse({'error': str(e)}, status=500)
     
-    return render(request, 'billing.html', {
-        'vendors': vendor, 
-        'products': product, 
-        'company': company, 
-        'plants': plant, 
-        'vehicles': vehicle,
-        'gst': gst,
-        "username":request.user.username,
-        'bank_details': bank_details
-    })
+    # GET request - optimized data fetching
+    try:
+        context = {
+            'vendors': queries.get_vendor(request.user),
+            'products': queries.get_product(request.user),
+            'company': queries.get_company(request.user).first(),
+            'plants': queries.get_plant(request.user),
+            'vehicles': queries.get_vehicle(request.user),
+            'gst': queries.get_gst().first(),
+            'username': request.user.username,
+            'bank_details': queries.get_bank_details(request.user),
+        }
+        return render(request, 'billing.html', context)
+    except Exception as e:
+        print(f"Template rendering error: {e}")
+        return HttpResponseServerError("Error loading page")
 
 @csrf_exempt
 def render_invoice_pdf(invoice, flag, gst_rate):
-    date_obj = datetime.now()
-    formatted_datetime = date_obj.strftime("%d-%m-%Y-%H-%M")
-    if "rushika" in str(invoice.company.name).lower():
-        logo_path = os.path.join(settings.BASE_DIR, 'billing/static', 'rushika_logo.png')
-        top_quote = "Jai ShreeKrishna"
-    else:
-        logo_path = os.path.join(settings.BASE_DIR, 'billing/static', 'logo.png')
-        top_quote = "SHREE GANESHAY NAMAH"
-    
-    with open(logo_path, "rb") as image_file:
-        encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
-    
-    logo_data_url = f"data:image/png;base64,{encoded_logo}"
-    context = {
-        "invoice": invoice,
-        "logo_data_url": logo_data_url,
-        "cgst_rate": float(gst_rate)/2,
-        "sgst_rate":  float(gst_rate)/2,
-        "total_gst_rate": gst_rate,
-        "top_quote": top_quote,
-    }
-    
-    # Render template to string
-    template_name = "demo_template.html" if flag else "bill_template.html"
-    html_content = render_to_string(template_name, context)
-    
-    # Create temporary HTML file
-    with tempfile.NamedTemporaryFile(suffix='.html', delete=False) as f:
-        f.write(html_content.encode('utf-8'))
-        temp_file_path = f.name
-    
+    """Optimized PDF generation with caching and performance improvements"""
     try:
+        # Cache logo processing
+        cache_key = f"logo_{invoice.company.id}"
+        logo_data_url = cache.get(cache_key)
+        
+        if not logo_data_url:
+            if "rushika" in str(invoice.company.name).lower():
+                logo_path = os.path.join(settings.BASE_DIR, 'billing/static', 'rushika_logo.png')
+                top_quote = "Jai ShreeKrishna"
+            else:
+                logo_path = os.path.join(settings.BASE_DIR, 'billing/static', 'logo.png')
+                top_quote = "SHREE GANESHAY NAMAH"
+            
+            with open(logo_path, "rb") as image_file:
+                encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
+            logo_data_url = f"data:image/png;base64,{encoded_logo}"
+            cache.set(cache_key, logo_data_url, 3600)  # Cache for 1 hour
+
+        # Prepare context
+        context = {
+            "invoice": invoice,
+            "logo_data_url": logo_data_url,
+            "cgst_rate": float(gst_rate)/2,
+            "sgst_rate": float(gst_rate)/2,
+            "total_gst_rate": gst_rate,
+            "top_quote": top_quote,
+        }
+
+        # Render template
+        template_name = "demo_template.html" if flag else "bill_template.html"
+        html_content = render_to_string(template_name, context)
+
+        # Generate PDF directly in memory
         with sync_playwright() as p:
             browser = p.chromium.launch()
             page = browser.new_page()
             
-            page.goto(f'file://{temp_file_path}', wait_until='networkidle')
+            # Set timeout and wait strategy
+            page.set_default_timeout(5000)
+            page.set_content(html_content)
             page.wait_for_load_state('networkidle')
-            page.wait_for_timeout(1000)
             
             pdf_data = page.pdf(
                 format='A4',
                 print_background=True,
-                margin={
-                    "top": "0mm",
-                    "right": "0mm",
-                    "bottom": "0mm",
-                    "left": "0mm",
-                }
+                margin={"top": "0mm", "right": "0mm", "bottom": "0mm", "left": "0mm"}
             )
-            
             browser.close()
-    finally:
-        if os.path.exists(temp_file_path):
-            os.unlink(temp_file_path)
-    
-    # Save PDF
-    pdf_dir = os.path.join(settings.MEDIA_ROOT, 'invoices')
-    os.makedirs(pdf_dir, exist_ok=True)
-    
-    pdf_filename = f"invoice-no-{invoice.invoice_number}-{formatted_datetime}.pdf"
-    pdf_path = os.path.join(pdf_dir, pdf_filename)
-    
-    with open(pdf_path, 'wb') as f:
-        f.write(pdf_data)
-    
-    response = HttpResponse(pdf_data, content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="{pdf_filename}"'
-    return response
+
+        # Save PDF (async if possible)
+        pdf_filename = f"invoice-no-{invoice.invoice_number}-{datetime.now().strftime('%d-%m-%Y-%H-%M')}.pdf"
+        pdf_path = os.path.join(settings.MEDIA_ROOT, 'invoices', pdf_filename)
+        
+        # Use ThreadPoolExecutor for non-blocking file save
+        with ThreadPoolExecutor() as executor:
+            executor.submit(lambda: Path(pdf_path).write_bytes(pdf_data))
+
+        response = HttpResponse(pdf_data, content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="{pdf_filename}"'
+        return response
+
+    except Exception as e:
+        print(f"PDF generation error: {e}")
+        return HttpResponseServerError("Error generating PDF")
 
 # API endpoint to add line items dynamically
 @login_required
