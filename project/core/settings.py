@@ -11,6 +11,10 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+MEDIA_ROOT = os.environ.get("MEDIA_ROOT", BASE_DIR / "media")
+MEDIA_URL  = "/media/"
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-*p-gc2k_^-f$j!z%rsn91h-)zsjl6c_h%j%-9(mhy95tm&iug='
 
@@ -99,8 +103,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'  # Collect static files here
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'  # For user-uploaded files
+# MEDIA_URL = '/media/'
+# MEDIA_ROOT = BASE_DIR / 'media'  # For user-uploaded files
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',  # If you have a static folder inside your project

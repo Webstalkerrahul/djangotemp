@@ -48,6 +48,7 @@ class Invoice(models.Model):
     net_amount = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
     amount_in_words = models.CharField(max_length=300,blank=True, null=True)
     bank_details = models.ForeignKey(BankDetail, on_delete=models.PROTECT,blank=True, null=True)
+    pdf = models.FileField(upload_to="invoices/", blank=True, null=True)
     
 
     def __str__(self):

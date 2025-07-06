@@ -70,6 +70,7 @@ def clean_gst_rate(gst_rate):
     except ValueError:
         return "12"
 def add_multi_line_invoice(user, invoice_number, vendor_id, line_items, gst_rate, bank_detail):
+    print("Adding multi-line invoice with optimized bulk operations")
     """Highly optimized invoice creation with bulk operations"""
     try:
         with transaction.atomic():
@@ -83,6 +84,8 @@ def add_multi_line_invoice(user, invoice_number, vendor_id, line_items, gst_rate
             total_amount = Decimal('0')
             invoice_items = []
             billing_objects = []
+
+            
             
             for item_data in line_items:
                 # Parse and validate data
