@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   web:
@@ -9,8 +9,17 @@ services:
       - DEBUG=0
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
+      - MEDIA_ROOT=/app/media           #  ←  Django will use this
+    command: >
+      gunicorn core.wsgi:application
+        --bind 0.0.0.0:8000
+        --workers 4
+        --access-logfile -
+        --error-logfile -
+    volumes:
+      # Bind‑mount the host folder so anything Django writes survives restarts
+      - /home/pi/pdfs:/app/media
     restart: unless-stopped
-    command: gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 4 --access-logfile - --error-logfile -
     networks:
       - backend
 
@@ -21,12 +30,13 @@ services:
     depends_on:
       - web
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/conf.d:/etc/nginx/conf.d            # your site configs
+      - /home/pi/pdfs:/app/media:ro                 # read‑only mount for media
+    command: nginx -g "daemon off;"
+    restart: always
     networks:
       - frontend
       - backend
-    restart: always
-    command: nginx -g "daemon off;"
 
 networks:
   frontend:
