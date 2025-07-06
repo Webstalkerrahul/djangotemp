@@ -383,21 +383,29 @@
                                     {% endif %}
                                 </td>
 
-                                <!-- Actions -->
+                                <!-- Actions column -->
                                 <td class="px-6 py-4 whitespace-nowrap text-right">
-                                    <div class="flex justify-end gap-2">
-                                        <!-- Edit Button -->
-                                        <a href="{% url 'billing:edit_invoice' invoice.id %}" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 group" title="Edit Invoice">
-                                            <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                            </svg>
+                                <div class="flex justify-end gap-2">
+                                    <!-- EDIT button (unchanged) -->
+                                    <a href="{% url 'billing:edit_invoice' invoice.id %}"
+                                    class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 group"
+                                    title="Edit Invoice">
+                                        …
+                                    </a>
+
+                                   {% if invoice.pdf %}
+                                        <a href="{{ invoice.pdf.url }}" target="_blank"
+                                        class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs rounded-lg
+                                                hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-sm"
+                                        title="View Invoice">
+                                            View PDF
                                         </a>
-                                        <!-- View Details Button -->
-                                        <button class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-sm">
-                                            View Details
-                                        </button>
-                                    </div>
+                                    {% else %}
+                                        <span class="text-gray-400 italic text-xs">No PDF</span>
+                                    {% endif %}
+                                </div>
                                 </td>
+
                             </tr>
                             {% endfor %}
                         </tbody>

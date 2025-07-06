@@ -18,135 +18,132 @@ import json
 from django.views.decorators.csrf import csrf_exempt, csrf_protect   
 from core.utils.sql import invoice_helper
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .models import Invoice, Vendor, Company, Plant, Vehicle, Product
+from .models import Invoice, Vendor, Company, Plant, Vehicle, Product, Billing
 from django.views.decorators.http import require_POST
+from django.http import HttpResponseServerError
+from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
+from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 
 @login_required
 @csrf_exempt
 def generate_invoice(request):
+    """Optimized invoice generation endpoint"""
     if request.method == 'POST':
-        # Get basic invoice data
-        invoice_number = request.POST.get('invoice_number')
-        vendor_id = request.POST.get('vendor')
-        company_id = request.POST.get('company')
-        # Get line items data (assuming JSON format from frontend)
-        line_items_json = request.POST.get('line_items')
-        
-        if not line_items_json:
-            return render(request, 'billing.html', {'error': 'No line items provided'})
-        
         try:
+            # Process input data
+            invoice_number = request.POST.get('invoice_number')
+            vendor_id = request.POST.get('vendor')
+            line_items_json = request.POST.get('line_items')
+            
+            if not line_items_json:
+                return JsonResponse({'error': 'No line items provided'}, status=400)
+            
             line_items = json.loads(line_items_json)
-        except json.JSONDecodeError:
-            return render(request, 'billing.html', {'error': 'Invalid line items format'})
-        gst_rate = request.POST.get('gst_rate',0)
-        # Create invoice with multiple line items
-        invoice = queries.add_multi_line_invoice(
-            request.user,
-            invoice_number, 
-            vendor_id, 
-            line_items,
-            gst_rate = gst_rate,
-            bank_detail = request.POST.get('bank_detail', None),
-        )
-        
-        if invoice is None:
-            return render(request, 'billing.html', {'error': 'Error creating invoice'})
-        else:
+            gst_rate = request.POST.get('gst_rate', '12')
+            
+            # Create invoice in transaction
+            invoice = queries.add_multi_line_invoice(
+                request.user,
+                invoice_number, 
+                vendor_id, 
+                line_items,
+                gst_rate=gst_rate,
+                bank_detail=request.POST.get('bank_detail'),
+            )
+            
+            if not invoice:
+                return JsonResponse({'error': 'Invoice creation failed'}, status=500)
+            
+            # Generate PDF with optimized function
             flag = request.user.username == 'sahil'
-            response = render_invoice_pdf(invoice, flag, gst_rate)
-            return response
-    # GET request - show form
-    vendor = queries.get_vendor(request.user)
-    product = queries.get_product(request.user)
-    company = queries.get_company(request.user)
-    plant = queries.get_plant(request.user)
-    vehicle = queries.get_vehicle(request.user)
-    gst = queries.get_gst()
-    bank_details =  queries.get_bank_details(request.user)
+            return render_invoice_pdf(invoice, flag, gst_rate)
+            
+        except Exception as e:
+            print(f"Invoice generation error: {e}")
+            return JsonResponse({'error': str(e)}, status=500)
     
-    return render(request, 'billing.html', {
-        'vendors': vendor, 
-        'products': product, 
-        'company': company, 
-        'plants': plant, 
-        'vehicles': vehicle,
-        'gst': gst,
-        "username":request.user.username,
-        'bank_details': bank_details
-    })
-
+    # GET request - optimized data fetching
+    try:
+        context = {
+            'vendors': queries.get_vendor(request.user),
+            'products': queries.get_product(request.user),
+            'company': queries.get_company(request.user).first(),
+            'plants': queries.get_plant(request.user),
+            'vehicles': queries.get_vehicle(request.user),
+            'gst': queries.get_gst(),
+            'username': request.user.username,
+            'bank_details': queries.get_bank_details(request.user),
+        }
+        return render(request, 'billing.html', context)
+    except Exception as e:
+        print(f"Template rendering error: {e}")
+        return HttpResponseServerError("Error loading page")
 @csrf_exempt
 def render_invoice_pdf(invoice, flag, gst_rate):
-    date_obj = datetime.now()
-    formatted_datetime = date_obj.strftime("%d-%m-%Y-%H-%M")
-    if "rushika" in str(invoice.company.name).lower():
-        logo_path = os.path.join(settings.BASE_DIR, 'billing/static', 'rushika_logo.png')
-        top_quote = "Jai ShreeKrishna"
-    else:
-        logo_path = os.path.join(settings.BASE_DIR, 'billing/static', 'logo.png')
-        top_quote = "SHREE GANESHAY NAMAH"
-    
-    with open(logo_path, "rb") as image_file:
-        encoded_logo = base64.b64encode(image_file.read()).decode('utf-8')
-    
-    logo_data_url = f"data:image/png;base64,{encoded_logo}"
-    context = {
-        "invoice": invoice,
-        "logo_data_url": logo_data_url,
-        "cgst_rate": float(gst_rate)/2,
-        "sgst_rate":  float(gst_rate)/2,
-        "total_gst_rate": gst_rate,
-        "top_quote": top_quote,
-    }
-    
-    # Render template to string
-    template_name = "demo_template.html" if flag else "bill_template.html"
-    html_content = render_to_string(template_name, context)
-    
-    # Create temporary HTML file
-    with tempfile.NamedTemporaryFile(suffix='.html', delete=False) as f:
-        f.write(html_content.encode('utf-8'))
-        temp_file_path = f.name
-    
     try:
+        # Decide quote & logo file **before** cache lookup
+        is_rushika = "rushika" in str(invoice.company.name).lower()
+        top_quote  = "Jai ShreeKrishna" if is_rushika else "SHREE GANESHAY NAMAH"
+        logo_file  = "rushika_logo.png"  if is_rushika else "logo.png"
+
+        # Cache the logo image as data URL
+        cache_key = f"logo_{invoice.company.id}_{logo_file}"
+        logo_data_url = cache.get(cache_key)
+        if not logo_data_url:
+            logo_path = os.path.join(settings.BASE_DIR, 'billing/static', logo_file)
+            with open(logo_path, "rb") as image_file:
+                encoded_logo = base64.b64encode(image_file.read()).decode("utf-8")
+            logo_data_url = f"data:image/png;base64,{encoded_logo}"
+            cache.set(cache_key, logo_data_url, 3600)
+
+        # Build context for HTML rendering
+        context = {
+            "invoice": invoice,
+            "logo_data_url": logo_data_url,
+            "cgst_rate": float(gst_rate) / 2,
+            "sgst_rate": float(gst_rate) / 2,
+            "total_gst_rate": gst_rate,
+            "top_quote": top_quote,
+        }
+
+        # Render template and generate PDF using Playwright
+        template_name = "demo_template.html" if flag else "bill_template.html"
+        html_content = render_to_string(template_name, context)
+
         with sync_playwright() as p:
             browser = p.chromium.launch()
             page = browser.new_page()
-            
-            page.goto(f'file://{temp_file_path}', wait_until='networkidle')
-            page.wait_for_load_state('networkidle')
-            page.wait_for_timeout(1000)
-            
+            page.set_default_timeout(5000)
+            page.set_content(html_content)
+            page.wait_for_load_state("networkidle")
             pdf_data = page.pdf(
-                format='A4',
+                format="A4",
                 print_background=True,
-                margin={
-                    "top": "0mm",
-                    "right": "0mm",
-                    "bottom": "0mm",
-                    "left": "0mm",
-                }
+                margin={"top": "0mm", "right": "0mm", "bottom": "0mm", "left": "0mm"},
             )
-            
             browser.close()
-    finally:
-        if os.path.exists(temp_file_path):
-            os.unlink(temp_file_path)
-    
-    # Save PDF
-    pdf_dir = os.path.join(settings.MEDIA_ROOT, 'invoices')
-    os.makedirs(pdf_dir, exist_ok=True)
-    
-    pdf_filename = f"invoice-no-{invoice.invoice_number}-{formatted_datetime}.pdf"
-    pdf_path = os.path.join(pdf_dir, pdf_filename)
-    
-    with open(pdf_path, 'wb') as f:
-        f.write(pdf_data)
-    
-    response = HttpResponse(pdf_data, content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="{pdf_filename}"'
-    return response
+
+        # Save to storage
+        pdf_filename = f"invoice-no-{invoice.invoice_number}-{datetime.now():%d-%m-%Y-%H-%M}.pdf"
+        pdf_rel_path = f"invoices/{pdf_filename}"
+        full_path = default_storage.save(pdf_rel_path, ContentFile(pdf_data))
+
+        # ⬇️ Save PDF file path to the Invoice model
+        invoice.pdf.name = full_path
+        invoice.save(update_fields=["pdf"])
+
+        # Respond with inline PDF (optional — can also redirect)
+        response = HttpResponse(pdf_data, content_type="application/pdf")
+        response["Content-Disposition"] = f'inline; filename="{pdf_filename}"'
+        return response
+
+    except Exception as e:
+        print(f"PDF generation error: {e}")
+        return HttpResponseServerError("Error generating PDF")
+
 
 # API endpoint to add line items dynamically
 @login_required
@@ -217,13 +214,18 @@ def view_invoices(request):
 @csrf_exempt 
 def edit_invoice(request, invoice_id):
     """
-    View to edit an existing invoice
+    View to edit an existing invoice with line items
     """
     invoice = get_object_or_404(Invoice, id=invoice_id)
     
+    # Get all billing records (line items) for this invoice
+    billing_items = Billing.objects.filter(
+        invoice_number=invoice.invoice_number
+    ).select_related('vendor', 'plant', 'product', 'vehicle', 'company')
+    
     if request.method == 'POST':
         try:
-            # Update invoice fields
+            # Update main invoice fields
             invoice.chalan_number = request.POST.get('chalan_number', '')
             
             # Update foreign key relationships if needed
@@ -261,6 +263,63 @@ def edit_invoice(request, invoice_id):
             if date_str:
                 invoice.date = datetime.strptime(date_str, '%Y-%m-%d').date()
             
+            # Handle line items updates
+            line_item_ids = request.POST.getlist('line_item_id[]')
+            line_item_chalans = request.POST.getlist('line_item_chalan[]')
+            line_item_dates = request.POST.getlist('line_item_date[]')
+            line_item_quantities = request.POST.getlist('line_item_quantity[]')
+            line_item_rates = request.POST.getlist('line_item_rate[]')
+            line_item_vehicles = request.POST.getlist('line_item_vehicle[]')
+            line_item_products = request.POST.getlist('line_item_product[]')
+            line_item_plants = request.POST.getlist('line_item_plant[]')
+            
+            # Update existing line items
+            for i, item_id in enumerate(line_item_ids):
+                if item_id:  # Existing item
+                    billing_item = get_object_or_404(Billing, id=item_id)
+                    billing_item.chalan_number = line_item_chalans[i]
+                    billing_item.date = datetime.strptime(line_item_dates[i], '%Y-%m-%d').date()
+                    billing_item.quantity = float(line_item_quantities[i])
+                    billing_item.rate = float(line_item_rates[i])
+                    
+                    if line_item_vehicles[i]:
+                        billing_item.vehicle = get_object_or_404(Vehicle, id=line_item_vehicles[i])
+                    if line_item_products[i]:
+                        billing_item.product = get_object_or_404(Product, id=line_item_products[i])
+                    if line_item_plants[i]:
+                        billing_item.plant = get_object_or_404(Plant, id=line_item_plants[i])
+                    
+                    billing_item.save()
+                else:  # New item
+                    if line_item_chalans[i]:  # Only create if chalan number exists
+                        Billing.objects.create(
+                            invoice_number=invoice.invoice_number,
+                            chalan_number=line_item_chalans[i],
+                            date=datetime.strptime(line_item_dates[i], '%Y-%m-%d').date(),
+                            quantity=float(line_item_quantities[i]),
+                            rate=float(line_item_rates[i]),
+                            vehicle_id=line_item_vehicles[i] if line_item_vehicles[i] else None,
+                            product_id=line_item_products[i] if line_item_products[i] else None,
+                            plant_id=line_item_plants[i] if line_item_plants[i] else None,
+                            vendor=invoice.vendor,
+                            company=invoice.company,
+                        )
+            
+            # Recalculate totals based on updated line items
+            updated_billing_items = Billing.objects.filter(invoice_number=invoice.invoice_number)
+            total_amount = sum(item.quantity * item.rate for item in updated_billing_items)
+            
+            # Update GST calculations
+            gst_rate = float(request.POST.get('gst_rate', 12))
+            cgst = total_amount * (gst_rate / 2) / 100
+            sgst = total_amount * (gst_rate / 2) / 100
+            net_amount = total_amount + cgst + sgst
+            
+            invoice.total_amount = total_amount
+            invoice.cgst = cgst
+            invoice.sgst = sgst
+            invoice.net_amount = net_amount
+            
             # Save the updated invoice
             invoice.save()
             
@@ -273,14 +332,15 @@ def edit_invoice(request, invoice_id):
     # Get all related objects for dropdowns
     context = {
         'invoice': invoice,
-        'vendor' : queries.get_vendor(request.user),
-        'product' : queries.get_product(request.user),
-        'company' : queries.get_company(request.user),
-        'plant' : queries.get_plant(request.user),
-        'vehicle' : queries.get_vehicle(request.user),
-        'gst' : queries.get_gst(),
-        'bank_details' :  queries.get_bank_details(request.user),
-       }
+        'billing_items': billing_items,
+        'vendor': queries.get_vendor(request.user),
+        'product': queries.get_product(request.user),
+        'company': queries.get_company(request.user),
+        'plant': queries.get_plant(request.user),
+        'vehicle': queries.get_vehicle(request.user),
+        'gst': queries.get_gst(),
+        'bank_details': queries.get_bank_details(request.user),
+    }
     
     return render(request, 'edit_invoice.html', context)
 
@@ -327,3 +387,25 @@ def delete_invoice_ajax(request, invoice_id):
             'success': False,
             'message': f'Error deleting invoice: {str(e)}'
         }, status=400)
+    
+from django.http import FileResponse
+import glob
+
+def invoice_pdf_view(request, pk):
+    """
+    Return the saved PDF for an invoice (or regenerate it on the fly).
+    """
+    invoice = get_object_or_404(Invoice, pk=pk)
+
+    # 1) Look for an existing PDF file that starts with invoice-no-{number}
+    pattern = os.path.join(settings.MEDIA_ROOT, "invoices",
+                           f"invoice-no-{invoice.invoice_number}-*.pdf")
+    matches = sorted(glob.glob(pattern), reverse=True)  # newest first
+
+    if matches:
+        return FileResponse(open(matches[0], "rb"),
+                            content_type="application/pdf",
+                            filename=os.path.basename(matches[0]),
+                            as_attachment=False)      # inline view
+    # 2) Fallback: regenerate on the fly
+    return render_invoice_pdf(invoice, flag=False, gst_rate=invoice.gst or 12)
