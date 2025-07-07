@@ -9,6 +9,8 @@ from num2words import num2words
 from .amount_to_words import num_to_words_indian
 import re
 from django.db import transaction
+from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
 
 def get_vendor(logged_in_user):
     if logged_in_user.is_superuser:
@@ -69,102 +71,112 @@ def clean_gst_rate(gst_rate):
         return cleaned
     except ValueError:
         return "12"
-def add_multi_line_invoice(user, invoice_number, vendor_id, line_items, gst_rate, bank_detail):
-    print("Adding multi-line invoice with optimized bulk operations")
-    """Highly optimized invoice creation with bulk operations"""
+
+def add_multi_line_invoice(user, invoice_number, vendor_id, line_items, gst_rate=12, bank_detail=None):
+    """
+    Create an invoice with multiple line items
+    """
     try:
         with transaction.atomic():
-            # Pre-fetch all required objects
-            vendor = Vendor.objects.get(id=vendor_id)
-            company = Company.objects.filter(user=user).first()
-            if not company:
-                raise ValueError("No company found for this user")
+            # Create the main invoice record with only valid fields
+            invoice_data = {
+                'invoice_number': invoice_number,
+                'vendor_id': vendor_id,
+            }
             
-            # Process line items
-            total_amount = Decimal('0')
-            invoice_items = []
-            billing_objects = []
-
-            
-            
-            for item_data in line_items:
-                # Parse and validate data
-                item_date = (datetime.strptime(item_data['date'], "%Y-%m-%d").date() 
-                           if isinstance(item_data['date'], str) else item_data['date'])
-                
-                quantity = Decimal(str(item_data['quantity']))
-                rate = Decimal(str(item_data['rate']))
-                amount = quantity * rate
-                total_amount += amount
-                
-                # Prepare billing objects for bulk create
-                billing_objects.append(Billing(
-                    invoice_number=f"{invoice_number}-{item_data['chalan_number']}",
-                    chalan_number=item_data['chalan_number'],
-                    rate=rate,
-                    quantity=quantity,
-                    date=item_date,
-                    vendor_id=vendor.id,
-                    plant_id=item_data['plant_id'],
-                    product_id=item_data['product_id'],
-                    company_id=company.id,
-                    vehicle_id=item_data.get('vehicle_id')
-                ))
-                
-                # Collect invoice items - FIXED THIS LINE
-                invoice_items.append({
-                    'date': item_date,
-                    'chalan_number': item_data['chalan_number'],
-                    'vehicle_id': item_data.get('vehicle_id'),
-                    'product_id': item_data['product_id'],
-                    'plant_id': item_data['plant_id'],
-                    'quantity': quantity,
-                    'rate': rate,
-                    'amount': amount
-                })  # Removed extra )} here
-            
-            # Rest of your function remains the same...
-            # Calculate taxes
+            # Get company information safely
+            company = None
             try:
-                gst_decimal = Decimal(clean_gst_rate(gst_rate))
-                cgst = total_amount * (gst_decimal / 2) / 100
-                sgst = total_amount * (gst_decimal / 2) / 100
-            except (InvalidOperation, ValueError):
-                cgst = sgst = total_amount * Decimal('6') / 100
+                # Based on your Company model: user -> Company (user field in Company)
+                company = Company.objects.get(user=user)
+                print(f"Found company for user {user.username}: {company.name}")
+            except Company.DoesNotExist:
+                print(f"No company found for user: {user.username}")
+                company = None
+            except Exception as e:
+                print(f"Error getting company for user: {e}")
+                company = None
             
-            net_amount = total_amount + cgst + sgst
+            # Only add fields that exist in your Invoice model
+            invoice_fields = [f.name for f in Invoice._meta.fields]
             
-            # Create invoice
-            first_item = line_items[0]
-            invoice = Invoice.objects.create(
-                invoice_number=invoice_number,
-                rate=Decimal(str(first_item['rate'])),
-                quantity=sum(item['quantity'] for item in invoice_items),
-                date=datetime.strptime(first_item['date'], "%Y-%m-%d").date() if isinstance(first_item['date'], str) else first_item['date'],
-                vendor=vendor,
-                plant_id=first_item['plant_id'],
-                product_id=first_item['product_id'],
-                chalan_number=first_item['chalan_number'],
-                company=company,
-                total_amount=total_amount,
-                cgst=cgst,
-                sgst=sgst,
-                net_amount=net_amount,
-                amount_in_words=num_to_words_indian(round(net_amount)),
-                vehicle_id=first_item.get('vehicle_id'),
-                bank_details_id=bank_detail
-            )
+            if 'user' in invoice_fields:
+                invoice_data['user'] = user
+            elif 'created_by' in invoice_fields:
+                invoice_data['created_by'] = user
+            elif 'user_id' in invoice_fields:
+                invoice_data['user_id'] = user.id
+                
+            if 'gst_rate' in invoice_fields:
+                invoice_data['gst_rate'] = gst_rate
+                
+            if 'bank_detail' in invoice_fields:
+                invoice_data['bank_detail'] = bank_detail
+                
+            if 'company' in invoice_fields and company:
+                invoice_data['company'] = company
+            elif 'company_id' in invoice_fields and company:
+                invoice_data['company_id'] = company.id
+                
+            if 'date' in invoice_fields:
+                invoice_data['date'] = timezone.now().date()
+                
+            if 'total_amount' in invoice_fields:
+                invoice_data['total_amount'] = sum(float(item.get('amount', 0)) for item in line_items)
             
-            # Bulk create billing records
-            Billing.objects.bulk_create(billing_objects)
+            print(f"Creating invoice with data: {invoice_data}")
             
-            # Attach lightweight items data
-            invoice.items = invoice_items
+            # Create the invoice
+            invoice = Invoice.objects.create(**invoice_data)
+            
+            # Create billing items for each line item
+            for item in line_items:
+                # Extract product information
+                product_id = item.get('product_id')
+                
+                if not product_id:
+                    raise ValueError(f"Missing product_id in line item: {item}")
+                
+                # Verify product exists
+                try:
+                    product = Product.objects.get(id=product_id)
+                except Product.DoesNotExist:
+                    raise ValueError(f"Product with ID {product_id} does not exist")
+                
+                # Create billing record
+                billing_data = {
+                    'invoice_number': invoice.invoice_number,
+                    'chalan_number': item.get('chalan_number', ''),
+                    'quantity': item.get('quantity', 0),
+                    'rate': item.get('rate', 0),
+                    'date': item.get('date'),
+                    'vendor_id': vendor_id,
+                    'product_id': product_id,
+                    'plant_id': item.get('plant_id'),
+                    'vehicle_id': item.get('vehicle_id'),
+                    'created_at': timezone.now(),
+                }
+                
+                # Add company field if it exists in Billing model
+                billing_fields = [f.name for f in Billing._meta.fields]
+                if 'company' in billing_fields and company:
+                    billing_data['company'] = company
+                elif 'company_id' in billing_fields and company:
+                    billing_data['company_id'] = company.id
+                
+                print(f"Creating billing item with data: {billing_data}")
+                
+                billing_item = Billing.objects.create(**billing_data)
+                
+                print(f"Created billing item: ID={billing_item.id}, Product={product_id}")
+            
             return invoice
             
     except Exception as e:
-        print(f"Invoice creation error: {e}")
-        return None
+        print(f"Error in add_multi_line_invoice: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 # Also update your original add_data_billing function for consistency
 def add_data_billing(invoice_number, chalan_number, rate, quantity, date_str, vendor_id, plant_id, product_id, company_id, vehicle_id, gst_rate=None):

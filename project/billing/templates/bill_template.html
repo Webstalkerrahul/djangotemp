@@ -100,18 +100,46 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for item in invoice.items %}
+                        {% for item in invoice_items %}
                         <tr>
                             <td class="py-1 px-2 border-b text-xs text-black">{{ forloop.counter }}</td>
-                            <td class="py-1 px-2 border-b text-xs text-black">{{ item.date }}</td>
-                            <td class="py-1 px-2 border-b text-xs text-black">{{ item.chalan_number }}</td>
-                            <td class="py-1 px-2 border-b text-xs text-black">{{ item.vehicle.number }}</td>
-                            <td class="py-1 px-2 border-b text-xs text-black">{{ item.product.name }}</td>
-                            <td class="py-1 px-2 border-b text-xs text-black">{{ item.product.hsn_code }}</td>
-                            <td class="py-1 px-2 border-b text-xs text-black">{{ item.plant.name }}</td>
-                            <td class="py-1 px-2 border-b text-xs text-black text-right">{{ item.quantity }}</td>
-                            <td class="py-1 px-2 border-b text-xs text-black text-right">{{ item.rate }}</td>
+                            <td class="py-1 px-2 border-b text-xs text-black">{{ item.date|date:"M d, Y" }}</td>
+                            <td class="py-1 px-2 border-b text-xs text-black">{{ item.chalan_number|default:"N/A" }}</td>
+                            <td class="py-1 px-2 border-b text-xs text-black">
+                                {% if item.vehicle %}
+                                    {{ item.vehicle.number }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td class="py-1 px-2 border-b text-xs text-black">
+                                {% if item.product %}
+                                    {{ item.product.name }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td class="py-1 px-2 border-b text-xs text-black">
+                                {% if item.product %}
+                                    {{ item.product.hsn_code }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td class="py-1 px-2 border-b text-xs text-black">
+                                {% if item.plant %}
+                                    {{ item.plant.name }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td class="py-1 px-2 border-b text-xs text-black text-right">{{ item.quantity|default:0 }}</td>
+                            <td class="py-1 px-2 border-b text-xs text-black text-right">{{ item.rate|default:0 }}</td>
                             <td class="py-1 px-2 border-b text-xs text-black text-right">{{ item.amount|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="py-4 px-2 text-center text-sm text-gray-500">No items found</td>
                         </tr>
                         {% endfor %}
                         <!-- Total row -->
@@ -138,7 +166,7 @@
                     <span class="text-black">₹{{ invoice.sgst|floatformat:2 }}</span>
                 </div>
                 <div class="flex justify-between py-3 text-lg font-bold border-t border-gray-200 mt-2">
-                   <span class="text-black">Grand Total <span class="text-xs">({{total_gst_rate}})%</span>:</span>
+                   <span class="text-black">Grand Total <span class="text-xs">({{total_gst_rate}}%)</span>:</span>
                     <span class="text-blue-600">₹{{ invoice.net_amount|floatformat:2 }}</span>
                 </div>
             </div>
@@ -193,4 +221,84 @@
         </button>
     </div>
 </body>
+<script>
+    // Fixed JavaScript for collecting line items
+function collectLineItems() {
+    const lineItems = [];
+    const lineItemContainers = document.querySelectorAll('.line-item');
+    
+    console.log(`Found ${lineItemContainers.length} line item containers`);
+    
+    lineItemContainers.forEach((container, index) => {
+        const lineItem = {
+            date: container.querySelector('input[name="date"]').value,
+            chalan_number: container.querySelector('input[name="chalan_number"]').value,
+            vehicle: container.querySelector('select[name="vehicle"]').value,  // Changed from vehicle_id
+            product: container.querySelector('select[name="product"]').value,  // Changed from product_id
+            plant: container.querySelector('select[name="plant"]').value,      // Changed from plant_id
+            quantity: container.querySelector('input[name="quantity"]').value,
+            rate: container.querySelector('input[name="rate"]').value
+        };
+        
+        console.log(`Line item ${index + 1}:`, lineItem);
+        
+        // Validate required fields
+        if (!lineItem.date || !lineItem.chalan_number || !lineItem.vehicle || 
+            !lineItem.product || !lineItem.plant || !lineItem.quantity || !lineItem.rate) {
+            console.error(`Line item ${index + 1} is missing required fields`);
+            return;
+        }
+        
+        lineItems.push(lineItem);
+    });
+    
+    console.log('All line items collected:', lineItems);
+    return lineItems;
+}
+
+// Enhanced form submission with validation
+document.getElementById('yourFormId').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const lineItems = collectLineItems();
+    
+    if (lineItems.length === 0) {
+        alert('Please add at least one line item');
+        return;
+    }
+    
+    const formData = new FormData(this);
+    formData.append('line_items', JSON.stringify(lineItems));
+    
+    console.log('Submitting form with:', {
+        invoice_number: formData.get('invoice_number'),
+        vendor: formData.get('vendor'),
+        line_items: lineItems,
+        gst_rate: formData.get('gst_rate')
+    });
+    
+    // Submit the form
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            // Handle success - maybe open PDF in new tab
+            window.open(response.url, '_blank');
+        } else {
+            return response.json().then(data => {
+                throw new Error(data.error || 'Unknown error');
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error generating invoice: ' + error.message);
+    });
+});
+</script>
 </html>

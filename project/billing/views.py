@@ -1,4 +1,3 @@
-
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
@@ -26,6 +25,9 @@ from concurrent.futures import ThreadPoolExecutor
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.db.models import Sum, Count, Avg, Q
+from django.utils import timezone
+from datetime import datetime, timedelta
 
 @login_required
 @csrf_exempt
@@ -42,14 +44,50 @@ def generate_invoice(request):
                 return JsonResponse({'error': 'No line items provided'}, status=400)
             
             line_items = json.loads(line_items_json)
+            
+            # DEBUG: Print the line items received
+            print(f"Received line items: {line_items}")
+            print(f"Number of line items: {len(line_items)}")
+            
+            # DEBUG: Check each line item for required fields
+            for i, item in enumerate(line_items):
+                print(f"Line item {i+1}: {item}")
+                if 'product_id' not in item or not item['product_id']:
+                    print(f"WARNING: Line item {i+1} missing product_id field")
+                else:
+                    print(f"Line item {i+1} has product_id: {item['product_id']}")
+            
             gst_rate = request.POST.get('gst_rate', '12')
+            
+            # Validate line items before processing
+            validated_line_items = []
+            for i, item in enumerate(line_items):
+                # Check if product information exists
+                product_id = item.get('product_id') or item.get('product')
+                if not product_id:
+                    return JsonResponse({
+                        'error': f'Line item {i+1} is missing product information'
+                    }, status=400)
+                
+                # Verify product exists in database
+                try:
+                    from product.models import Product  # Replace with your actual import
+                    product = Product.objects.get(id=product_id)
+                    item['product_id'] = product.id
+                    item['product'] = product.id  # Ensure both fields are set
+                except Product.DoesNotExist:
+                    return JsonResponse({
+                        'error': f'Product with ID {product_id} does not exist'
+                    }, status=400)
+                
+                validated_line_items.append(item)
             
             # Create invoice in transaction
             invoice = queries.add_multi_line_invoice(
                 request.user,
                 invoice_number, 
                 vendor_id, 
-                line_items,
+                validated_line_items,  # Use validated items
                 gst_rate=gst_rate,
                 bank_detail=request.POST.get('bank_detail'),
             )
@@ -57,15 +95,23 @@ def generate_invoice(request):
             if not invoice:
                 return JsonResponse({'error': 'Invoice creation failed'}, status=500)
             
+            # DEBUG: Check if billing items were created
+            billing_items_count = Billing.objects.filter(invoice_number=invoice.invoice_number).count()
+            print(f"Billing items created in database: {billing_items_count}")
+            
             # Generate PDF with optimized function
             flag = request.user.username == 'sahil'
             return render_invoice_pdf(invoice, flag, gst_rate)
             
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON format for line_items'}, status=400)
         except Exception as e:
             print(f"Invoice generation error: {e}")
+            import traceback
+            traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
     
-    # GET request - optimized data fetching
+ # GET request - optimized data fetching
     try:
         context = {
             'vendors': queries.get_vendor(request.user),
@@ -99,6 +145,112 @@ def render_invoice_pdf(invoice, flag, gst_rate):
             logo_data_url = f"data:image/png;base64,{encoded_logo}"
             cache.set(cache_key, logo_data_url, 3600)
 
+        # Get billing items (line items) for this invoice with proper relationships
+        billing_items = Billing.objects.filter(
+            invoice_number=invoice.invoice_number
+        ).select_related('vendor', 'plant', 'product', 'vehicle', 'company').order_by('id')
+        
+        # Debug print to see what we're getting
+        print(f"Rendering invoice for invoice number: {invoice.invoice_number}")
+        print(f"Found {billing_items.count()} billing items")
+        
+        # Log details of each item for debugging
+        for i, item in enumerate(billing_items):
+            print(f"Item {i+1}: {item.chalan_number}, Vehicle: {item.vehicle}, Plant: {item.plant}, Product: {item.product}")
+            if item.vehicle:
+                print(f"  Vehicle number: {item.vehicle.number}")
+            if item.plant:
+                print(f"  Plant name: {item.plant.name}")
+            if item.product:
+                print(f"  Product name: {item.product.name}, HSN: {item.product.hsn_code}")
+        
+        # If no billing items found, try to create a single item from the invoice itself
+        if not billing_items.exists():
+            print("No billing items found, creating from invoice data")
+            quantity = float(invoice.quantity) if invoice.quantity else 0.0
+            rate = float(invoice.rate) if invoice.rate else 0.0
+            amount = quantity * rate
+            
+            invoice_items = [{
+                'date': invoice.date,
+                'chalan_number': getattr(invoice, 'chalan_number', ''),
+                'vehicle': invoice.vehicle,
+                'product': invoice.product,
+                'plant': invoice.plant,
+                'vendor': invoice.vendor,
+                'quantity': quantity,
+                'rate': rate,
+                'amount': amount,
+                'hsn_code': getattr(invoice.product, 'hsn_code', '') if invoice.product else '',
+            }]
+        else:
+            # Calculate amount for each item (since it might not be stored)
+            invoice_items = []
+            for item in billing_items:
+                quantity = float(item.quantity) if item.quantity else 0.0
+                rate = float(item.rate) if item.rate else 0.0
+                amount = quantity * rate
+                
+                item_dict = {
+                    'date': item.date,
+                    'chalan_number': item.chalan_number,
+                    'vehicle': item.vehicle,
+                    'product': item.product,
+                    'plant': item.plant,
+                    'vendor': item.vendor,
+                    'quantity': quantity,
+                    'rate': rate,
+                    'amount': amount,
+                    'hsn_code': getattr(item.product, 'hsn_code', '') if item.product else '',
+                }
+                invoice_items.append(item_dict)
+                print(f"Added item to invoice_items: {item_dict}")
+
+        # Calculate totals with proper numeric conversion
+        subtotal = sum(float(item['amount']) for item in invoice_items)
+        gst_rate_float = float(gst_rate) if gst_rate else 0.0
+        cgst_amount = subtotal * (gst_rate_float / 2 / 100)
+        sgst_amount = subtotal * (gst_rate_float / 2 / 100)
+        total_amount = subtotal + cgst_amount + sgst_amount
+
+        # UPDATE: Set the calculated values on the invoice object
+        invoice.total_amount = subtotal
+        invoice.cgst = cgst_amount
+        invoice.sgst = sgst_amount
+        invoice.net_amount = total_amount
+        
+        # Convert amount to words
+        from core.utils.amount_to_words import num_to_words_indian
+        invoice.amount_in_words = num_to_words_indian(int(total_amount))
+        
+        # Get bank details - FIX: Get from user's bank details
+        try:
+            # Try to get bank details from the user or company
+            bank_details = queries.get_bank_details(invoice.vendor.user if hasattr(invoice.vendor, 'user') else None)
+            if bank_details.exists():
+                invoice.bank_details = bank_details.first()
+            else:
+                # Fallback: create a default bank details object
+                from types import SimpleNamespace
+                invoice.bank_details = SimpleNamespace(
+                    bank_name="Not Available",
+                    account_holder_name="Not Available", 
+                    account_number="Not Available",
+                    ifsc_code="Not Available",
+                    branch="Not Available"
+                )
+        except Exception as e:
+            print(f"Error getting bank details: {e}")
+            # Create default bank details
+            from types import SimpleNamespace
+            invoice.bank_details = SimpleNamespace(
+                bank_name="Not Available",
+                account_holder_name="Not Available", 
+                account_number="Not Available",
+                ifsc_code="Not Available",
+                branch="Not Available"
+            )
+
         # Build context for HTML rendering
         context = {
             "invoice": invoice,
@@ -107,18 +259,57 @@ def render_invoice_pdf(invoice, flag, gst_rate):
             "sgst_rate": float(gst_rate) / 2,
             "total_gst_rate": gst_rate,
             "top_quote": top_quote,
+            "invoice_items": invoice_items,
+            "subtotal": subtotal,
+            "cgst_amount": cgst_amount,
+            "sgst_amount": sgst_amount,
+            "total_amount": total_amount,
+            "items_count": len(invoice_items),
         }
+
+        # Debug: Print context info
+        print(f"Context - Invoice items count: {len(invoice_items)}")
+        print(f"Context - Subtotal: {subtotal}")
+        print(f"Context - CGST: {cgst_amount}")
+        print(f"Context - SGST: {sgst_amount}")
+        print(f"Context - Total amount: {total_amount}")
+        print(f"Context - Bank details: {invoice.bank_details}")
 
         # Render template and generate PDF using Playwright
         template_name = "demo_template.html" if flag else "bill_template.html"
         html_content = render_to_string(template_name, context)
 
+        # Debug: Print or log the HTML content length and first few characters
+        print(f"HTML content length: {len(html_content)}")
+        print(f"HTML content preview: {html_content[:500]}...")
+
         with sync_playwright() as p:
-            browser = p.chromium.launch()
+            browser = p.chromium.launch(
+                headless=True,
+                args=['--disable-dev-shm-usage', '--no-sandbox', '--disable-setuid-sandbox']
+            )
             page = browser.new_page()
-            page.set_default_timeout(5000)
-            page.set_content(html_content)
-            page.wait_for_load_state("networkidle")
+            
+            # Increase timeout and disable waiting for resources
+            page.set_default_timeout(30000)  # 30 seconds instead of 5
+            
+            # Method 1: Use set_content with wait_until='domcontentloaded'
+            try:
+                page.set_content(html_content, wait_until='domcontentloaded')
+            except Exception as content_error:
+                print(f"set_content failed: {content_error}")
+                # Method 2: Alternative approach using goto with data URL
+                data_url = f"data:text/html;charset=utf-8,{html_content}"
+                page.goto(data_url, wait_until='domcontentloaded')
+            
+            # Wait for any additional resources to load (optional)
+            try:
+                page.wait_for_load_state("networkidle", timeout=10000)  # 10 seconds max
+            except:
+                # If networkidle fails, just wait for domcontentloaded
+                page.wait_for_load_state("domcontentloaded", timeout=5000)
+            
+            # Generate PDF
             pdf_data = page.pdf(
                 format="A4",
                 print_background=True,
@@ -131,19 +322,20 @@ def render_invoice_pdf(invoice, flag, gst_rate):
         pdf_rel_path = f"invoices/{pdf_filename}"
         full_path = default_storage.save(pdf_rel_path, ContentFile(pdf_data))
 
-        # ⬇️ Save PDF file path to the Invoice model
+        # Save PDF file path to the Invoice model
         invoice.pdf.name = full_path
         invoice.save(update_fields=["pdf"])
 
-        # Respond with inline PDF (optional — can also redirect)
+        # Respond with inline PDF
         response = HttpResponse(pdf_data, content_type="application/pdf")
         response["Content-Disposition"] = f'inline; filename="{pdf_filename}"'
         return response
 
     except Exception as e:
         print(f"PDF generation error: {e}")
+        import traceback
+        traceback.print_exc()
         return HttpResponseServerError("Error generating PDF")
-
 
 # API endpoint to add line items dynamically
 @login_required
@@ -188,6 +380,7 @@ def home(request):
 
 @csrf_exempt 
 def view_invoices(request):
+    """Enhanced view with complete billing statistics"""
     invoices, total = invoice_helper.get_invoice_data(request)
     
     # Set up pagination - 10 items per page
@@ -197,19 +390,145 @@ def view_invoices(request):
     try:
         invoices_page = paginator.page(page)
     except PageNotAnInteger:
-        # If page is not an integer, deliver first page
         invoices_page = paginator.page(1)
     except EmptyPage:
-        # If page is out of range, deliver last page
         invoices_page = paginator.page(paginator.num_pages)
+    
+    # Get comprehensive billing statistics
+    billing_stats = get_billing_statistics(request.user)
+    
+    # Calculate averages and totals
+    total_count = paginator.count
+    avg_value = total / total_count if total_count > 0 else 0
     
     data = {
         "invoices": invoices_page,
         "request": request,
         "total": total,
-        "avg_value": total / paginator.count if paginator.count > 0 else 0,
+        "avg_value": avg_value,
+        "billing_stats": billing_stats,
+        "total_invoices": total_count,
+        "pending_invoices": billing_stats.get('pending_count', 0),
+        "paid_invoices": billing_stats.get('paid_count', 0),
+        "pending_amount": billing_stats.get('pending_amount', 0),
     }
     return render(request, "invoice_display.html", data)
+
+def get_billing_statistics(user):
+    """Get comprehensive billing statistics for dashboard"""
+    try:
+        # Get current month date range
+        now = timezone.now()
+        start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+        # Base queryset for user's invoices
+        user_invoices = Invoice.objects.filter(
+            Q(created_by=user) | Q(vendor__created_by=user) | Q(company__created_by=user)
+        )
+        
+        # Get all billing entries for user
+        user_billing = Billing.objects.filter(
+            Q(created_by=user) | Q(vendor__created_by=user) | Q(company__created_by=user)
+        )
+        
+        # Calculate totals
+        total_revenue = user_invoices.aggregate(
+            total=Sum('net_amount')
+        )['total'] or 0
+        
+        # Calculate this month's revenue
+        monthly_revenue = user_invoices.filter(
+            created_at__gte=start_of_month
+        ).aggregate(
+            total=Sum('net_amount')
+        )['total'] or 0
+        
+        # Get invoice counts by status (you may need to add status field to Invoice model)
+        # For now, we'll use a simple heuristic: invoices created in last 30 days as "pending"
+        # and older ones as "paid" - adjust this logic based on your business rules
+        
+        thirty_days_ago = now - timedelta(days=30)
+        
+        pending_invoices = user_invoices.filter(
+            created_at__gte=thirty_days_ago
+        )
+        
+        paid_invoices = user_invoices.filter(
+            created_at__lt=thirty_days_ago
+        )
+        
+        pending_stats = pending_invoices.aggregate(
+            count=Count('id'),
+            amount=Sum('net_amount')
+        )
+        
+        paid_stats = paid_invoices.aggregate(
+            count=Count('id'),
+            amount=Sum('net_amount')
+        )
+        
+        # Average invoice value
+        avg_invoice_value = user_invoices.aggregate(
+            avg=Avg('net_amount')
+        )['avg'] or 0
+        
+        # Get billing line items statistics
+        billing_stats = user_billing.aggregate(
+            total_quantity=Sum('quantity'),
+            total_billing_amount=Sum('quantity') * Sum('rate') if user_billing.exists() else 0,
+            avg_rate=Avg('rate')
+        )
+        
+        # Monthly trends (last 6 months)
+        monthly_data = []
+        for i in range(6):
+            month_start = (now - timedelta(days=30*i)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+            
+            month_revenue = user_invoices.filter(
+                created_at__gte=month_start,
+                created_at__lte=month_end
+            ).aggregate(
+                total=Sum('net_amount'),
+                count=Count('id')
+            )
+            
+            monthly_data.append({
+                'month': month_start.strftime('%b %Y'),
+                'revenue': month_revenue['total'] or 0,
+                'count': month_revenue['count'] or 0
+            })
+        
+        return {
+            'total_revenue': total_revenue,
+            'monthly_revenue': monthly_revenue,
+            'pending_count': pending_stats['count'] or 0,
+            'pending_amount': pending_stats['amount'] or 0,
+            'paid_count': paid_stats['count'] or 0,
+            'paid_amount': paid_stats['amount'] or 0,
+            'avg_invoice_value': avg_invoice_value,
+            'total_quantity': billing_stats['total_quantity'] or 0,
+            'avg_rate': billing_stats['avg_rate'] or 0,
+            'monthly_trends': monthly_data,
+            'total_invoices': user_invoices.count(),
+        }
+        
+    except Exception as e:
+        print(f"Error getting billing statistics: {e}")
+        return {
+            'total_revenue': 0,
+            'monthly_revenue': 0,
+            'pending_count': 0,
+            'pending_amount': 0,
+            'paid_count': 0,
+            'paid_amount': 0,
+            'avg_invoice_value': 0,
+            'total_quantity': 0,
+            'avg_rate': 0,
+            'monthly_trends': [],
+            'total_invoices': 0,
+        }
+
 
 @csrf_exempt 
 def edit_invoice(request, invoice_id):
@@ -409,3 +728,68 @@ def invoice_pdf_view(request, pk):
                             as_attachment=False)      # inline view
     # 2) Fallback: regenerate on the fly
     return render_invoice_pdf(invoice, flag=False, gst_rate=invoice.gst or 12)
+
+@login_required
+@require_POST
+@csrf_protect
+def delete_invoice(request, invoice_id):
+    """
+    Delete an invoice and its associated PDF file
+    """
+    try:
+        # Get the invoice object or return 404 if not found
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+        
+        # Check if the user has permission to delete this invoice
+        # Add your permission logic here if needed
+        # For example, if invoices belong to users:
+        # if invoice.user != request.user:
+        #     messages.error(request, "You don't have permission to delete this invoice.")
+        #     return redirect('billing:view_invoices')
+        
+        # Store invoice number for the success message
+        invoice_number = invoice.invoice_number
+        
+        # Delete the PDF file if it exists
+        if invoice.pdf:
+            try:
+                if os.path.exists(invoice.pdf.path):
+                    os.remove(invoice.pdf.path)
+            except Exception as e:
+                # Log the error but don't fail the deletion
+                print(f"Error deleting PDF file: {e}")
+        
+        # Delete the invoice from the database
+        invoice.delete()
+        
+        # Add success message
+        messages.success(request, f'Invoice {invoice_number} has been deleted successfully.')
+        
+        # Return JSON response for AJAX requests
+        if request.headers.get('Content-Type') == 'application/json':
+            return JsonResponse({
+                'success': True,
+                'message': f'Invoice {invoice_number} has been deleted successfully.'
+            })
+        
+        # Redirect to the invoices list page
+        return redirect('billing:view_invoices')
+        
+    except Invoice.DoesNotExist:
+        messages.error(request, 'Invoice not found.')
+        if request.headers.get('Content-Type') == 'application/json':
+            return JsonResponse({
+                'success': False,
+                'message': 'Invoice not found.'
+            }, status=404)
+        return redirect('billing:view_invoices')
+        
+    except Exception as e:
+        # Handle any other errors
+        messages.error(request, f'An error occurred while deleting the invoice: {str(e)}')
+        if request.headers.get('Content-Type') == 'application/json':
+            return JsonResponse({
+                'success': False,
+                'message': f'An error occurred while deleting the invoice: {str(e)}'
+            }, status=500)
+        return redirect('billing:view_invoices')
