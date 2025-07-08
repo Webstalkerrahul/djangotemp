@@ -261,17 +261,23 @@
                             <!-- Actions -->
                             <td class="px-6 py-4 whitespace-nowrap text-right">
                                 <div class="flex justify-end gap-2">
-                                    <!-- Edit Button -->
-                                    <a href="#" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 group" title="Edit Vendor">
-                                        <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <!-- View Details Button -->
+                                   <a href="{% url 'vendor:edit_vendor' vendor.id %}"
+                                    class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 group"
+                                    title="Edit vendor">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                         </svg>
                                     </a>
-                                    <!-- View Details Button -->
-                                    <button class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-sm">
-                                        View Details
-                                    </button>
                                 </div>
+                                <!-- DELETE button -->
+                                    <button onclick="confirmDelete('{{ vendor.id }}', '{{ vendor.name }}', '{% url 'vendor:delete_vendor' vendor.id %}')"
+                                            class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 group"
+                                            title="Delete Vendor">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
                             </td>
                         </tr>
                         {% empty %}
@@ -343,5 +349,42 @@
         </div>
     </div>
 </body>
+<script>
+    
+function confirmDelete(invoiceId, invoiceNumber, deleteUrl) {
+    if (confirm(`Are you sure you want to delete invoice #${invoiceNumber}? This action cannot be undone.`)) {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = deleteUrl;  // Use the URL passed from Django
+        
+        // Try to get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken.value;
+            form.appendChild(csrfInput);
+        } else {
+            // If no CSRF token found, try to get it from cookies
+            const csrfCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('csrftoken='));
+            if (csrfCookie) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfCookie.split('=')[1];
+                form.appendChild(csrfInput);
+            } else {
+                alert('CSRF token not found. Please refresh the page and try again.');
+                return;
+            }
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
 </html>
 {% endblock %}

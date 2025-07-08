@@ -45,18 +45,9 @@ def generate_invoice(request):
             
             line_items = json.loads(line_items_json)
             
-            # DEBUG: Print the line items received
-            print(f"Received line items: {line_items}")
-            print(f"Number of line items: {len(line_items)}")
             
             # DEBUG: Check each line item for required fields
-            for i, item in enumerate(line_items):
-                print(f"Line item {i+1}: {item}")
-                if 'product_id' not in item or not item['product_id']:
-                    print(f"WARNING: Line item {i+1} missing product_id field")
-                else:
-                    print(f"Line item {i+1} has product_id: {item['product_id']}")
-            
+           
             gst_rate = request.POST.get('gst_rate', '12')
             
             # Validate line items before processing
@@ -97,7 +88,6 @@ def generate_invoice(request):
             
             # DEBUG: Check if billing items were created
             billing_items_count = Billing.objects.filter(invoice_number=invoice.invoice_number).count()
-            print(f"Billing items created in database: {billing_items_count}")
             
             # Generate PDF with optimized function
             flag = request.user.username == 'sahil'
@@ -106,7 +96,6 @@ def generate_invoice(request):
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON format for line_items'}, status=400)
         except Exception as e:
-            print(f"Invoice generation error: {e}")
             import traceback
             traceback.print_exc()
             return JsonResponse({'error': str(e)}, status=500)
@@ -125,7 +114,6 @@ def generate_invoice(request):
         }
         return render(request, 'billing.html', context)
     except Exception as e:
-        print(f"Template rendering error: {e}")
         return HttpResponseServerError("Error loading page")
 @csrf_exempt
 def render_invoice_pdf(invoice, flag, gst_rate):
@@ -150,23 +138,9 @@ def render_invoice_pdf(invoice, flag, gst_rate):
             invoice_number=invoice.invoice_number
         ).select_related('vendor', 'plant', 'product', 'vehicle', 'company').order_by('id')
         
-        # Debug print to see what we're getting
-        print(f"Rendering invoice for invoice number: {invoice.invoice_number}")
-        print(f"Found {billing_items.count()} billing items")
-        
-        # Log details of each item for debugging
-        for i, item in enumerate(billing_items):
-            print(f"Item {i+1}: {item.chalan_number}, Vehicle: {item.vehicle}, Plant: {item.plant}, Product: {item.product}")
-            if item.vehicle:
-                print(f"  Vehicle number: {item.vehicle.number}")
-            if item.plant:
-                print(f"  Plant name: {item.plant.name}")
-            if item.product:
-                print(f"  Product name: {item.product.name}, HSN: {item.product.hsn_code}")
         
         # If no billing items found, try to create a single item from the invoice itself
         if not billing_items.exists():
-            print("No billing items found, creating from invoice data")
             quantity = float(invoice.quantity) if invoice.quantity else 0.0
             rate = float(invoice.rate) if invoice.rate else 0.0
             amount = quantity * rate
@@ -204,7 +178,6 @@ def render_invoice_pdf(invoice, flag, gst_rate):
                     'hsn_code': getattr(item.product, 'hsn_code', '') if item.product else '',
                 }
                 invoice_items.append(item_dict)
-                print(f"Added item to invoice_items: {item_dict}")
 
         # Calculate totals with proper numeric conversion
         subtotal = sum(float(item['amount']) for item in invoice_items)
@@ -240,7 +213,6 @@ def render_invoice_pdf(invoice, flag, gst_rate):
                     branch="Not Available"
                 )
         except Exception as e:
-            print(f"Error getting bank details: {e}")
             # Create default bank details
             from types import SimpleNamespace
             invoice.bank_details = SimpleNamespace(
@@ -267,21 +239,10 @@ def render_invoice_pdf(invoice, flag, gst_rate):
             "items_count": len(invoice_items),
         }
 
-        # Debug: Print context info
-        print(f"Context - Invoice items count: {len(invoice_items)}")
-        print(f"Context - Subtotal: {subtotal}")
-        print(f"Context - CGST: {cgst_amount}")
-        print(f"Context - SGST: {sgst_amount}")
-        print(f"Context - Total amount: {total_amount}")
-        print(f"Context - Bank details: {invoice.bank_details}")
-
         # Render template and generate PDF using Playwright
         template_name = "demo_template.html" if flag else "bill_template.html"
         html_content = render_to_string(template_name, context)
 
-        # Debug: Print or log the HTML content length and first few characters
-        print(f"HTML content length: {len(html_content)}")
-        print(f"HTML content preview: {html_content[:500]}...")
 
         with sync_playwright() as p:
             browser = p.chromium.launch(
@@ -297,7 +258,6 @@ def render_invoice_pdf(invoice, flag, gst_rate):
             try:
                 page.set_content(html_content, wait_until='domcontentloaded')
             except Exception as content_error:
-                print(f"set_content failed: {content_error}")
                 # Method 2: Alternative approach using goto with data URL
                 data_url = f"data:text/html;charset=utf-8,{html_content}"
                 page.goto(data_url, wait_until='domcontentloaded')
@@ -332,7 +292,6 @@ def render_invoice_pdf(invoice, flag, gst_rate):
         return response
 
     except Exception as e:
-        print(f"PDF generation error: {e}")
         import traceback
         traceback.print_exc()
         return HttpResponseServerError("Error generating PDF")
@@ -382,8 +341,7 @@ def home(request):
 def view_invoices(request):
     """Enhanced view with complete billing statistics"""
     invoices, total = invoice_helper.get_invoice_data(request)
-    
-    # Set up pagination - 10 items per page
+
     paginator = Paginator(invoices, 10)
     page = request.GET.get('page')
     
@@ -412,6 +370,7 @@ def view_invoices(request):
         "paid_invoices": billing_stats.get('paid_count', 0),
         "pending_amount": billing_stats.get('pending_amount', 0),
     }
+
     return render(request, "invoice_display.html", data)
 
 def get_billing_statistics(user):
@@ -514,7 +473,6 @@ def get_billing_statistics(user):
         }
         
     except Exception as e:
-        print(f"Error getting billing statistics: {e}")
         return {
             'total_revenue': 0,
             'monthly_revenue': 0,
@@ -669,7 +627,6 @@ def delete_invoice(request, invoice_id):
     """
     View to delete an invoice
     """
-    print(f"Deleting invoice: {invoice_id}")
     invoice = get_object_or_404(Invoice, id=invoice_id)
     
     

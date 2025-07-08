@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Vendor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .card-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            border-color: #6366f1;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div class="w-full p-4 lg:p-8">
+        <!-- Header Section -->
+        <div class="mb-8 fade-in-up">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                        Edit Vendor
+                    </h1>
+                    <p class="text-gray-600">Update vendor information</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'vendor:display_vendors' %}" class="px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 flex items-center gap-2 shadow-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        Back to Vendors
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="max-w-4xl mx-auto bg-white rounded-3xl card-shadow overflow-hidden fade-in-up">
+            <div class="bg-gradient-to-r from-slate-50 to-blue-50 px-8 py-6 border-b border-gray-100">
+                <h2 class="text-xl font-semibold text-gray-800">Vendor Information</h2>
+            </div>
+
+            <div class="p-8">
+                {% if error %}
+                <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="text-red-700 font-medium">{{ error }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                                Vendor Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="name" 
+                                   name="name" 
+                                   value="{{ vendor.name }}"
+                                   required 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition-all duration-200" 
+                                   placeholder="Enter vendor name">
+                        </div>
+
+                        <div>
+                            <label for="vendor_code" class="block text-sm font-medium text-gray-700 mb-2">
+                                Vendor Code
+                            </label>
+                            <input type="text" 
+                                   id="vendor_code" 
+                                   name="vendor_code" 
+                                   value="{{ vendor.vendor_code|default_if_none:'' }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition-all duration-200" 
+                                   placeholder="Enter vendor code">
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                                Email Address
+                            </label>
+                            <input type="email" 
+                                   id="email" 
+                                   name="email" 
+                                   value="{{ vendor.email|default_if_none:'' }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition-all duration-200" 
+                                   placeholder="Enter email address">
+                        </div>
+
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                                Phone Number
+                            </label>
+                            <input type="tel" 
+                                   id="phone" 
+                                   name="phone" 
+                                   value="{{ vendor.phone|default_if_none:'' }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition-all duration-200" 
+                                   placeholder="Enter phone number">
+                        </div>
+                    </div>
+
+                    <!-- Address Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="md:col-span-2">
+                            <label for="address" class="block text-sm font-medium text-gray-700 mb-2">
+                                Address <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="address" 
+                                      name="address" 
+                                      rows="3" 
+                                      required 
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition-all duration-200" 
+                                      placeholder="Enter complete address">{{ vendor.address }}</textarea>
+                        </div>
+
+                        <div>
+                            <label for="pincode" class="block text-sm font-medium text-gray-700 mb-2">
+                                Pincode
+                            </label>
+                            <input type="text" 
+                                   id="pincode" 
+                                   name="pincode" 
+                                   value="{{ vendor.pincode|default_if_none:'' }}"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition-all duration-200" 
+                                   placeholder="Enter pincode">
+                        </div>
+                    </div>
+
+                    <!-- GST Information -->
+                    <div>
+                        <label for="gst_number" class="block text-sm font-medium text-gray-700 mb-2">
+                            GST Number <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" 
+                               id="gst_number" 
+                               name="gst_number" 
+                               value="{{ vendor.gst_number }}"
+                               required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition-all duration-200" 
+                               placeholder="Enter GST number">
+                    </div>
+
+                    <!-- Status -->
+                    <div class="flex items-center">
+                        <input type="checkbox" 
+                               id="is_active" 
+                               name="is_active" 
+                               {% if vendor.is_active %}checked{% endif %}
+                               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <label for="is_active" class="ml-2 block text-sm text-gray-900">
+                            Vendor is active
+                        </label>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                        <a href="{% url 'vendor:display_vendors' %}" class="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium">
+                            Cancel
+                        </a>
+                        <button type="submit" class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 font-medium shadow-lg">
+                            Update Vendor
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+{% endblock %}

@@ -10,7 +10,7 @@ class Billing(models.Model):
     rate = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
     date = models.DateField(default=date.today, blank=True, null=True)
-    vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT, db_column='vendor_id')
+    vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, blank=True)
     plant = models.ForeignKey(Plant, on_delete=models.PROTECT, db_column='plant_id')
     product = models.ForeignKey(Product, on_delete=models.PROTECT, db_column='product_id')
     vehicle = models.ForeignKey(
@@ -35,7 +35,7 @@ class Invoice(models.Model):
     rate = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
     quantity = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
     date = models.DateField(default=date.today, blank=True, null=True)
-    vendor = models.ForeignKey(Vendor, on_delete=models.PROTECT,blank=True, null=True)
+    vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, blank=True)
     plant = models.ForeignKey(Plant, on_delete=models.PROTECT,blank=True, null=True)
     vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT,blank=True, null=True)
     product = models.ForeignKey(Product, on_delete=models.PROTECT,blank=True, null=True)
