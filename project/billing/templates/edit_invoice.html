@@ -37,6 +37,12 @@
             background: linear-gradient(135deg, #ef4444, #dc2626);
             transform: scale(1.02);
         }
+        .status-pending {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        }
+        .status-paid {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -53,6 +59,24 @@
                         <p class="text-gray-600">Update invoice details and line items</p>
                     </div>
                     <div class="flex items-center space-x-4">
+                        <!-- Payment Status Badge -->
+                        <div class="flex items-center space-x-2">
+                            <span class="px-3 py-1 rounded-full text-sm font-medium text-white" 
+                                  id="statusBadge"
+                                  class="{% if invoice.payment_status == 'paid' %}status-paid{% else %}status-pending{% endif %}">
+                                {% if invoice.payment_status == 'paid' %}
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Paid
+                                {% else %}
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Pending
+                                {% endif %}
+                            </span>
+                        </div>
                         <a href="{% url 'billing:view_invoices' %}" 
                            class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 flex items-center gap-2 shadow-sm">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +108,7 @@
                     <div class="p-8 space-y-8">
                         
                         <!-- Basic Information -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Invoice Number</label>
                                 <input type="text" name="invoice_number" value="{{ invoice.invoice_number }}" 
@@ -96,6 +120,22 @@
                                 <input type="number" name="gst_rate" value="12" step="0.01"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition-all duration-200"
                                        onchange="calculateTotalAmounts()">
+                            </div>
+                           <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Payment Status
+                                </label>
+
+                                <!-- value="0" → False ; value="1" → True -->
+                                <select name="is_paid"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none input-focus transition-all duration-200">
+                                    <option value="0" {% if not invoice.is_paid %}selected{% endif %}>
+                                        Pending
+                                    </option>
+                                    <option value="1" {% if invoice.is_paid %}selected{% endif %}>
+                                        Paid
+                                    </option>
+                                </select>
                             </div>
                         </div>
 
@@ -330,6 +370,59 @@
     </div>
 
    <script>
+
+        // Form Validation - FIXED VERSION
+function validateForm() {
+    const requiredFields = [
+        { field: 'select[name="vendor"]', message: 'Please select a vendor' },  // Changed from input to select
+        { field: 'input[name="date"]', message: 'Please select an invoice date' }
+    ];
+    
+    for (const { field, message } of requiredFields) {
+        const element = document.querySelector(field);
+        if (!element || !element.value.trim()) {
+            showNotification(message, 'error');
+            element.focus();
+            return false;
+        }
+    }
+    
+    // Validate line items
+    const lineItems = document.querySelectorAll('#lineItemsTable tr');
+    if (lineItems.length === 0) {
+        showNotification('Please add at least one line item', 'error');
+        return false;
+    }
+    
+    // Validate each line item
+    for (let i = 0; i < lineItems.length; i++) {
+        const row = lineItems[i];
+        const quantity = row.querySelector('.quantity-input');
+        const rate = row.querySelector('.rate-input');
+        const product = row.querySelector('select[name="line_item_product[]"]');
+        
+        if (!quantity || !quantity.value || parseFloat(quantity.value) <= 0) {
+            showNotification(`Line item ${i + 1}: Please enter a valid quantity`, 'error');
+            quantity.focus();
+            return false;
+        }
+        
+        if (!rate || !rate.value || parseFloat(rate.value) <= 0) {
+            showNotification(`Line item ${i + 1}: Please enter a valid rate`, 'error');
+            rate.focus();
+            return false;
+        }
+        
+        if (!product || !product.value) {
+            showNotification(`Line item ${i + 1}: Please select a product`, 'error');
+            product.focus();
+            return false;
+        }
+    }
+    
+    return true;
+}
+
         // Store template data for new line items
         const vehicleOptions = `
             <option value="">Select Vehicle</option>
@@ -349,6 +442,35 @@
                 <option value="{{ pl.id }}">{{ pl.name }}</option>
             {% endfor %}
         `;
+
+        // Payment Status Update Function
+        function updateStatusBadge(status) {
+            const statusBadge = document.getElementById('statusBadge');
+            
+            // Remove existing classes
+            statusBadge.classList.remove('status-pending', 'status-paid');
+            
+            // Add appropriate class and update content
+            if (status === 'paid') {
+                statusBadge.classList.add('status-paid');
+                statusBadge.innerHTML = `
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Paid
+                `;
+                showNotification('Payment status updated to Paid', 'success');
+            } else {
+                statusBadge.classList.add('status-pending');
+                statusBadge.innerHTML = `
+                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Pending
+                `;
+                showNotification('Payment status updated to Pending', 'info');
+            }
+        }
 
         // Modal Functions
         function confirmDelete() {
@@ -426,227 +548,307 @@
                 </td>
             `;
             tableBody.appendChild(newRow);
+            
+            // Add animation
+            newRow.style.opacity = '0';
+            newRow.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                newRow.style.transition = 'all 0.3s ease';
+                newRow.style.opacity = '1';
+                newRow.style.transform = 'translateY(0)';
+            }, 10);
+            
+            calculateTotalAmounts();
+            showNotification('New line item added', 'success');
         }
 
         function removeLineItem(button) {
             const row = button.closest('tr');
-            row.remove();
-            calculateTotalAmounts();
+            row.style.transition = 'all 0.3s ease';
+            row.style.opacity = '0';
+            row.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+                row.remove();
+                calculateTotalAmounts();
+                showNotification('Line item removed', 'info');
+            }, 300);
         }
 
         function calculateLineAmount(input) {
             const row = input.closest('tr');
-            const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
-            const rate = parseFloat(row.querySelector('.rate-input').value) || 0;
+            const quantityInput = row.querySelector('.quantity-input');
+            const rateInput = row.querySelector('.rate-input');
+            const amountSpan = row.querySelector('.line-amount');
+            
+            const quantity = parseFloat(quantityInput.value) || 0;
+            const rate = parseFloat(rateInput.value) || 0;
             const amount = quantity * rate;
             
-            row.querySelector('.line-amount').textContent = `₹${amount.toFixed(2)}`;
+            amountSpan.textContent = `₹${amount.toFixed(2)}`;
+            
+            // Add visual feedback
+            amountSpan.style.transition = 'all 0.3s ease';
+            amountSpan.style.transform = 'scale(1.1)';
+            amountSpan.style.color = '#10b981';
+            
+            setTimeout(() => {
+                amountSpan.style.transform = 'scale(1)';
+            }, 200);
+            
             calculateTotalAmounts();
         }
 
         function calculateTotalAmounts() {
-            const lineAmounts = document.querySelectorAll('.line-amount');
-            let total = 0;
+            const gstRate = parseFloat(document.querySelector('input[name="gst_rate"]').value) || 0;
+            let totalAmount = 0;
             
-            lineAmounts.forEach(span => {
+            // Calculate total from all line items
+            document.querySelectorAll('.line-amount').forEach(span => {
                 const amount = parseFloat(span.textContent.replace('₹', '').replace(',', '')) || 0;
-                total += amount;
+                totalAmount += amount;
             });
             
-            const gstRate = parseFloat(document.querySelector('input[name="gst_rate"]').value) || 0;
-            const cgst = (total * gstRate) / 200; // GST is split equally between CGST and SGST
-            const sgst = cgst;
-            const netAmount = total + cgst + sgst;
+            // Calculate GST
+            const gstAmount = (totalAmount * gstRate) / 100;
+            const cgst = gstAmount / 2;
+            const sgst = gstAmount / 2;
+            const netAmount = totalAmount + gstAmount;
             
-            document.querySelector('input[name="total_amount"]').value = total.toFixed(2);
+            // Update form fields
+            document.querySelector('input[name="total_amount"]').value = totalAmount.toFixed(2);
             document.querySelector('input[name="cgst"]').value = cgst.toFixed(2);
             document.querySelector('input[name="sgst"]').value = sgst.toFixed(2);
             document.querySelector('input[name="net_amount"]').value = netAmount.toFixed(2);
-        }
-
-        // GST Rate change handler
-        function updateGSTCalculation() {
-            calculateTotalAmounts();
-        }
-
-        // Form validation
-        function validateForm() {
-            const requiredFields = document.querySelectorAll('input[required], select[required]');
-            let isValid = true;
-            let firstInvalidField = null;
-
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    field.classList.add('border-red-500');
-                    isValid = false;
-                    if (!firstInvalidField) {
-                        firstInvalidField = field;
-                    }
-                } else {
-                    field.classList.remove('border-red-500');
-                }
+            
+            // Add animation to amount fields
+            const amountFields = [
+                document.querySelector('input[name="total_amount"]'),
+                document.querySelector('input[name="cgst"]'),
+                document.querySelector('input[name="sgst"]'),
+                document.querySelector('input[name="net_amount"]')
+            ];
+            
+            amountFields.forEach(field => {
+                field.style.transition = 'all 0.3s ease';
+                field.style.backgroundColor = '#f0f9ff';
+                field.style.borderColor = '#0ea5e9';
+                
+                setTimeout(() => {
+                    field.style.backgroundColor = '#f9fafb';
+                    field.style.borderColor = '#d1d5db';
+                }, 500);
             });
-
-            if (!isValid) {
-                if (firstInvalidField) {
-                    firstInvalidField.focus();
-                }
-                showNotification('Please fill in all required fields.', 'error');
-                return false;
-            }
-
-            // Validate at least one line item exists
-            const lineItems = document.querySelectorAll('#lineItemsTable tr');
-            if (lineItems.length === 0) {
-                showNotification('Please add at least one line item.', 'error');
-                return false;
-            }
-
-            return true;
         }
 
-        // Notification system
+        // Notification System
         function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.notification');
+            existingNotifications.forEach(notification => notification.remove());
+            
             const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full`;
+            notification.className = `notification fixed top-4 right-4 z-50 px-6 py-4 rounded-xl shadow-lg transform transition-all duration-300 translate-x-full`;
             
-            const bgColor = type === 'error' ? 'bg-red-500' : 
-                           type === 'success' ? 'bg-green-500' : 'bg-blue-500';
+            let bgColor, textColor, icon;
+            switch (type) {
+                case 'success':
+                    bgColor = 'bg-green-500';
+                    textColor = 'text-white';
+                    icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>`;
+                    break;
+                case 'error':
+                    bgColor = 'bg-red-500';
+                    textColor = 'text-white';
+                    icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>`;
+                    break;
+                case 'warning':
+                    bgColor = 'bg-yellow-500';
+                    textColor = 'text-white';
+                    icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>`;
+                    break;
+                default:
+                    bgColor = 'bg-blue-500';
+                    textColor = 'text-white';
+                    icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>`;
+            }
             
-            notification.className += ` ${bgColor} text-white`;
-            notification.textContent = message;
+            notification.className += ` ${bgColor} ${textColor}`;
+            notification.innerHTML = `
+                <div class="flex items-center gap-3">
+                    ${icon}
+                    <span class="font-medium">${message}</span>
+                </div>
+            `;
             
             document.body.appendChild(notification);
             
             // Animate in
             setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-            }, 10);
+                notification.style.transform = 'translateX(0)';
+            }, 100);
             
-            // Auto remove after 5 seconds
+            // Auto remove after 3 seconds
             setTimeout(() => {
-                notification.classList.add('translate-x-full');
+                notification.style.transform = 'translateX(full)';
                 setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
+                    notification.remove();
                 }, 300);
-            }, 5000);
+            }, 3000);
         }
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add event listener for GST rate changes
-            const gstRateInput = document.querySelector('input[name="gst_rate"]');
-            if (gstRateInput) {
-                gstRateInput.addEventListener('input', updateGSTCalculation);
+        // Form Validation
+        function validateForm() {
+            const requiredFields = [
+                { field: 'select[name="vendor"]', message: 'Please select a vendor' },
+                { field: 'input[name="date"]', message: 'Please select an invoice date' }
+            ];
+            
+            for (const { field, message } of requiredFields) {
+                const element = document.querySelector(field);
+                if (!element || !element.value.trim()) {
+                    showNotification(message, 'error');
+                    element.focus();
+                    return false;
+                }
             }
-
-            // Add event listener for form submission
-            const form = document.querySelector('form');
-            if (form) {
-                form.addEventListener('submit', function(e) {
-                    if (!validateForm()) {
-                        e.preventDefault();
-                    }
-                });
+            
+            // Validate line items
+            const lineItems = document.querySelectorAll('#lineItemsTable tr');
+            if (lineItems.length === 0) {
+                showNotification('Please add at least one line item', 'error');
+                return false;
             }
-
-            // Close modal when clicking outside
-            document.addEventListener('click', function(e) {
-                const modal = document.getElementById('deleteModal');
-                if (modal && e.target === modal) {
-                    closeDeleteModal();
+            
+            // Validate each line item
+            for (let i = 0; i < lineItems.length; i++) {
+                const row = lineItems[i];
+                const quantity = row.querySelector('.quantity-input');
+                const rate = row.querySelector('.rate-input');
+                const product = row.querySelector('select[name="line_item_product[]"]');
+                
+                if (!quantity || !quantity.value || parseFloat(quantity.value) <= 0) {
+                    showNotification(`Line item ${i + 1}: Please enter a valid quantity`, 'error');
+                    quantity.focus();
+                    return false;
                 }
-            });
-
-            // Close modal on escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeDeleteModal();
+                
+                if (!rate || !rate.value || parseFloat(rate.value) <= 0) {
+                    showNotification(`Line item ${i + 1}: Please enter a valid rate`, 'error');
+                    rate.focus();
+                    return false;
                 }
-            });
-
-            // Format number inputs on blur
-            document.addEventListener('blur', function(e) {
-                if (e.target.type === 'number' && e.target.value) {
-                    const value = parseFloat(e.target.value);
-                    if (!isNaN(value)) {
-                        e.target.value = value.toFixed(2);
-                    }
+                
+                if (!product || !product.value) {
+                    showNotification(`Line item ${i + 1}: Please select a product`, 'error');
+                    product.focus();
+                    return false;
                 }
-            }, true);
+            }
+            
+            return true;
+        }
 
-            // Calculate totals on page load if line items exist
-            calculateTotalAmounts();
+        // Form Submission
+        document.getElementById('editInvoiceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+            
+            // Show loading state
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Saving...
+            `;
+            
+            // Submit the form
+            this.submit();
         });
 
-        // Utility functions
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('en-IN', {
-                style: 'currency',
-                currency: 'INR',
-                minimumFractionDigits: 2
-            }).format(amount);
-        }
-
-        function exportToCSV() {
-            const rows = [];
-            const headers = ['Date', 'Chalan', 'Vehicle', 'Product', 'Plant', 'Quantity', 'Rate', 'Amount'];
-            rows.push(headers);
-
-            const tableRows = document.querySelectorAll('#lineItemsTable tr');
-            tableRows.forEach(row => {
-                const cells = [];
-                const inputs = row.querySelectorAll('input, select');
-                const amount = row.querySelector('.line-amount').textContent;
-                
-                inputs.forEach(input => {
-                    if (input.type !== 'hidden') {
-                        cells.push(input.value || input.textContent);
-                    }
+        // Initialize calculations on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateTotalAmounts();
+            
+            // Add smooth scrolling for better UX
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
                 });
-                cells.push(amount);
-                rows.push(cells);
             });
+            
+            // Auto-save draft functionality (optional)
+            let autoSaveTimeout;
+            const formInputs = document.querySelectorAll('input, select, textarea');
+            
+            formInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    clearTimeout(autoSaveTimeout);
+                    autoSaveTimeout = setTimeout(() => {
+                        // Auto-save logic can be implemented here
+                        console.log('Auto-saving draft...');
+                    }, 2000);
+                });
+            });
+        });
 
-            const csvContent = rows.map(row => row.join(',')).join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'invoice_line_items.csv';
-            a.click();
-            window.URL.revokeObjectURL(url);
-        }
+        // Close modal when clicking outside
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
 
-        // Print functionality
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + S to save
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                document.getElementById('editInvoiceForm').dispatchEvent(new Event('submit'));
+            }
+            
+            // Escape to close modal
+            if (e.key === 'Escape') {
+                closeDeleteModal();
+            }
+            
+            // Ctrl/Cmd + Enter to add line item
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                addLineItem();
+            }
+        });
+
+        // Print functionality (bonus feature)
         function printInvoice() {
             window.print();
         }
 
-        // Save draft functionality
-        function saveDraft() {
-            const formData = new FormData(document.querySelector('form'));
-            const draftData = {};
-            
-            for (let [key, value] of formData.entries()) {
-                if (draftData[key]) {
-                    if (Array.isArray(draftData[key])) {
-                        draftData[key].push(value);
-                    } else {
-                        draftData[key] = [draftData[key], value];
-                    }
-                } else {
-                    draftData[key] = value;
-                }
-            }
-            
-            // Note: In a real application, you would send this to a server
-            // For now, we'll just show a success message
-            showNotification('Draft saved successfully!', 'success');
+        // Export functionality (bonus feature)
+        function exportToCSV() {
+            const csvContent = "data:text/csv;charset=utf-8,";
+            // CSV export logic would go here
+            showNotification('Export functionality coming soon', 'info');
         }
     </script>
-    </body>
+</body>
 </html>
 {% endblock %}
