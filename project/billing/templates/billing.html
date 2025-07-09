@@ -212,7 +212,7 @@
                     </div>
 
                     <!-- Form Content -->
-                    <form id="invoiceForm" method="POST" class="p-8 space-y-8">
+                    <form id="invoiceForm" method="POST" class="p-8 space-y-8" action="{% url 'billing:generate_invoice' %}" enctype="multipart/form-data">
                         {% csrf_token %}
                         
                         <!-- Basic Information Section -->
@@ -669,6 +669,8 @@
                 document.getElementById('addLineItem').click();
             }
         });
+
+        
     </script>
 </body>
 </html>

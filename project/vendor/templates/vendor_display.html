@@ -9,22 +9,29 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
         .glass-morphism {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
+
         .card-shadow {
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
+
         .hover-lift {
             transition: all 0.3s ease;
         }
+
         .hover-lift:hover {
             transform: translateY(-2px);
             box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.15), 0 15px 15px -5px rgba(0, 0, 0, 0.08);
         }
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;
@@ -35,47 +42,118 @@
                 transform: translateY(0);
             }
         }
+
         .fade-in-up {
             animation: fadeInUp 0.6s ease-out forwards;
         }
+
         .search-focus:focus {
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
             border-color: #6366f1;
         }
+
         .row-hover:hover {
             background: linear-gradient(90deg, rgba(99, 102, 241, 0.02) 0%, rgba(255, 255, 255, 0.05) 100%);
         }
+
         .metric-card {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
             backdrop-filter: blur(20px);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .metric-card:hover {
             transform: translateY(-8px) scale(1.02);
             box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.25);
         }
+
         .floating-icon {
             animation: float 6s ease-in-out infinite;
         }
+
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-10px); }
         }
+
+        /* Mobile-specific styles */
+        @media (max-width: 640px) {
+            .mobile-stack {
+                flex-direction: column !important;
+            }
+            
+            .mobile-full-width {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            
+            .mobile-padding {
+                padding: 1rem !important;
+            }
+            
+            .mobile-text-center {
+                text-align: center !important;
+            }
+            
+            .mobile-card {
+                min-width: 100% !important;
+                margin-bottom: 1rem;
+            }
+            
+            .mobile-table-header {
+                display: none !important;
+            }
+            
+            .mobile-table-row {
+                display: flex !important;
+                flex-direction: column !important;
+                padding: 1.5rem !important;
+                border-bottom: 1px solid #e2e8f0 !important;
+            }
+            
+            .mobile-table-cell {
+                padding: 0.5rem 0 !important;
+                width: 100% !important;
+                display: flex !important;
+                justify-content: space-between !important;
+            }
+            
+            .mobile-table-cell:before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #4a5568;
+                margin-right: 1rem;
+            }
+            
+            .mobile-actions {
+                justify-content: center !important;
+                margin-top: 1rem !important;
+            }
+            
+            .mobile-hidden {
+                display: none !important;
+            }
+            
+            .mobile-show {
+                display: block !important;
+            }
+        }
     </style>
 </head>
+
 <body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-    <div class="w-full p-4 lg:p-8">
+    <div class="w-full p-4 lg:p-8 mobile-padding">
         <!-- Header Section -->
         <div class="mb-8 fade-in-up">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            <div class="flex items-center justify-between mobile-stack">
+                <div class="mobile-full-width mobile-text-center md:text-left">
+                    <h1 class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
                         Vendor Management
                     </h1>
                     <p class="text-gray-600">Manage and track all your vendors in one place</p>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <div class="bg-white rounded-2xl px-6 py-3 shadow-lg">
+                <div class="flex items-center space-x-4 mt-4 md:mt-0 mobile-full-width justify-center md:justify-end">
+                    <div class="bg-white rounded-2xl px-4 md:px-6 py-2 md:py-3 shadow-lg">
                         <div class="flex items-center space-x-2">
                             <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                             <span class="text-sm font-medium text-gray-700">{{ vendors.paginator.count|default:vendors.count }} Active Vendors</span>
@@ -86,109 +164,127 @@
         </div>
 
         <!-- Summary Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 fade-in-up">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 fade-in-up">
             <!-- Total Vendors Card -->
-            <div class="metric-card rounded-2xl p-6 card-shadow hover-lift border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="bg-gradient-to-br from-emerald-400 to-emerald-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg floating-icon">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            <div class="metric-card rounded-2xl p-4 md:p-6 card-shadow hover-lift border border-gray-100 mobile-card">
+                <div class="flex items-center justify-between mb-3 md:mb-4">
+                    <div
+                        class="bg-gradient-to-br from-emerald-400 to-emerald-600 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-lg floating-icon">
+                        <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                            </path>
                         </svg>
                     </div>
                 </div>
                 <div class="space-y-1">
-                    <p class="text-sm font-medium text-gray-600">Total Vendors</p>
-                    <h3 class="text-3xl font-bold text-emerald-600">{{ vendors.paginator.count|default:vendors.count }}</h3>
+                    <p class="text-xs md:text-sm font-medium text-gray-600">Total Vendors</p>
+                    <h3 class="text-2xl md:text-3xl font-bold text-emerald-600">{{ vendors.paginator.count|default:vendors.count }}
+                    </h3>
                     <p class="text-xs text-gray-500">Registered</p>
                 </div>
             </div>
 
             <!-- Active Vendors Card -->
-            <div class="metric-card rounded-2xl p-6 card-shadow hover-lift border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg floating-icon" style="animation-delay: 0.5s;">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            <div class="metric-card rounded-2xl p-4 md:p-6 card-shadow hover-lift border border-gray-100 mobile-card">
+                <div class="flex items-center justify-between mb-3 md:mb-4">
+                    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-lg floating-icon"
+                        style="animation-delay: 0.5s;">
+                        <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
                 </div>
                 <div class="space-y-1">
-                    <p class="text-sm font-medium text-gray-600">Active Vendors</p>
-                    <h3 class="text-3xl font-bold text-blue-600">{{ active_vendors_count|default:0 }}</h3>
+                    <p class="text-xs md:text-sm font-medium text-gray-600">Active Vendors</p>
+                    <h3 class="text-2xl md:text-3xl font-bold text-blue-600">{{ vendors.paginator.count|default:vendors.count }}</h3>
                     <p class="text-xs text-gray-500">Currently active</p>
                 </div>
             </div>
 
             <!-- GST Registered Card -->
-            <div class="metric-card rounded-2xl p-6 card-shadow hover-lift border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="bg-gradient-to-br from-amber-400 to-orange-500 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg floating-icon" style="animation-delay: 1s;">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            <div class="metric-card rounded-2xl p-4 md:p-6 card-shadow hover-lift border border-gray-100 mobile-card">
+                <div class="flex items-center justify-between mb-3 md:mb-4">
+                    <div class="bg-gradient-to-br from-amber-400 to-orange-500 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-lg floating-icon"
+                        style="animation-delay: 1s;">
+                        <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
                         </svg>
                     </div>
                 </div>
                 <div class="space-y-1">
-                    <p class="text-sm font-medium text-gray-600">GST Registered</p>
-                    <h3 class="text-3xl font-bold text-amber-600">{{ gst_vendors_count|default:0 }}</h3>
+                    <p class="text-xs md:text-sm font-medium text-gray-600">GST Registered</p>
+                    <h3 class="text-2xl md:text-3xl font-bold text-amber-600">{{ gst_vendors_count|default:0 }}</h3>
                     <p class="text-xs text-gray-500">With GST numbers</p>
                 </div>
             </div>
 
             <!-- Recent Vendors Card -->
-            <div class="metric-card rounded-2xl p-6 card-shadow hover-lift border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="bg-gradient-to-br from-purple-500 to-pink-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg floating-icon" style="animation-delay: 1.5s;">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            <div class="metric-card rounded-2xl p-4 md:p-6 card-shadow hover-lift border border-gray-100 mobile-card">
+                <div class="flex items-center justify-between mb-3 md:mb-4">
+                    <div class="bg-gradient-to-br from-purple-500 to-pink-600 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shadow-lg floating-icon"
+                        style="animation-delay: 1.5s;">
+                        <svg class="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
                 </div>
                 <div class="space-y-1">
-                    <p class="text-sm font-medium text-gray-600">Recent Vendors</p>
-                    <h3 class="text-3xl font-bold text-purple-600">{{ recent_vendors_count|default:0 }}</h3>
+                    <p class="text-xs md:text-sm font-medium text-gray-600">Recent Vendors</p>
+                    <h3 class="text-2xl md:text-3xl font-bold text-purple-600">{{ recent_vendors_count|default:0 }}</h3>
                     <p class="text-xs text-gray-500">This month</p>
                 </div>
             </div>
         </div>
 
         <!-- Main Content Card -->
-        <div class="bg-white rounded-3xl card-shadow overflow-hidden fade-in-up">
+        <div class="bg-white rounded-3xl card-shadow overflow-hidden fade-in-up mobile-full-width">
             <!-- Search and Filter Header -->
-            <div class="bg-gradient-to-r from-slate-50 to-blue-50 px-8 py-6 border-b border-gray-100">
+            <div class="bg-gradient-to-r from-slate-50 to-blue-50 px-4 md:px-8 py-4 md:py-6 border-b border-gray-100">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <!-- Search Bar -->
-                    <div class="relative flex-1 max-w-md">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <div class="relative flex-1 max-w-md mobile-full-width">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </div>
-                        <input type="text" 
-                               class="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm placeholder-gray-500 search-focus transition-all duration-200" 
-                               placeholder="Search vendors by name, email, or code...">
+                        <input type="text"
+                            class="w-full pl-10 pr-4 py-2 md:py-3 bg-white border border-gray-200 rounded-xl text-sm placeholder-gray-500 search-focus transition-all duration-200"
+                            placeholder="Search vendors...">
                     </div>
-                    
+
                     <!-- Action Buttons -->
-                    <div class="flex gap-3">
-                        <button class="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-all duration-200 flex items-center gap-2 shadow-sm">
+                    <div class="flex gap-2 md:gap-3 mobile-full-width justify-between md:justify-end">
+                        <button
+                            class="px-3 md:px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-all duration-200 flex items-center gap-2 shadow-sm text-sm md:text-base">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+                                </path>
                             </svg>
-                            Filter
+                            <span class="mobile-hidden">Filter</span>
                         </button>
-                        <button onclick="window.location.href='{% url 'vendor:add_vendor_manual' %}'" class="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow-lg">
+                        <button onclick="window.location.href='{% url 'vendor:add_vendor_manual' %}'"
+                            class="px-4 md:px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow-lg text-sm md:text-base">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4"></path>
                             </svg>
-                            New Vendor
+                            <span class="mobile-hidden md:inline">New Vendor</span>
+                            <span class="md:hidden">Add</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Table Container -->
-            <div class="overflow-x-auto">
+            <!-- Table Container - Desktop -->
+            <div class="overflow-x-auto mobile-hidden md:block">
                 <table class="w-full">
                     <thead>
                         <tr class="bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-100">
@@ -206,9 +302,11 @@
                             <!-- Vendor Details -->
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center mr-4 shadow-sm">
-                                        <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    <div class="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center mr-3 md:mr-4 shadow-sm">
+                                        <svg class="w-5 h-5 md:w-6 md:h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                                            </path>
                                         </svg>
                                     </div>
                                     <div>
@@ -262,14 +360,31 @@
                             <td class="px-6 py-4 whitespace-nowrap text-right">
                                 <div class="flex justify-end gap-2">
                                     <!-- Edit Button -->
-                                    <a href="#" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 group" title="Edit Vendor">
-                                        <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                    <a href="{% url 'vendor:edit_vendor' vendor.id %}"
+                                        class="group relative inline-flex items-center justify-center w-8 h-8 md:w-10 md:h-10 overflow-hidden bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-500 hover:to-indigo-600 rounded-xl transition-all duration-300 ease-out transform hover:scale-105 hover:shadow-xl shadow-lg border border-blue-100 hover:border-transparent"
+                                        title="Edit vendor">
+                                        <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        </div>
+                                        <svg class="relative z-10 w-4 h-4 text-blue-600 group-hover:text-white transition-all duration-300 group-hover:rotate-12"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                            </path>
                                         </svg>
                                     </a>
-                                    <!-- View Details Button -->
-                                    <button class="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-sm">
-                                        View Details
+
+                                    <!-- Delete Button -->
+                                    <button onclick="confirmDelete('{{ vendor.id }}', '{{ vendor.name }}', '{% url 'vendor:delete_vendor' vendor.id %}')"
+                                        class="group relative inline-flex items-center justify-center w-8 h-8 md:w-10 md:h-10 overflow-hidden bg-gradient-to-r from-red-50 to-rose-50 hover:from-red-500 hover:to-rose-600 rounded-xl transition-all duration-300 ease-out transform hover:scale-105 hover:shadow-xl shadow-lg border border-red-100 hover:border-transparent"
+                                        title="Delete Vendor">
+                                        <div class="absolute inset-0 bg-gradient-to-r from-red-400 to-rose-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        </div>
+                                        <svg class="relative z-10 w-4 h-4 text-red-600 group-hover:text-white transition-all duration-300 group-hover:rotate-12"
+                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                            </path>
+                                        </svg>
                                     </button>
                                 </div>
                             </td>
@@ -279,11 +394,14 @@
                             <td colspan="6" class="px-6 py-12 text-center">
                                 <div class="flex flex-col items-center">
                                     <svg class="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                                        </path>
                                     </svg>
                                     <h3 class="text-lg font-medium text-gray-900 mb-2">No vendors found</h3>
                                     <p class="text-gray-500 mb-4">Get started by adding your first vendor</p>
-                                    <button onclick="window.location.href='{% url 'vendor:add_vendor_manual' %}'" class="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200">
+                                    <button onclick="window.location.href='{% url 'vendor:add_vendor_manual' %}'"
+                                        class="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200">
                                         Add Vendor
                                     </button>
                                 </div>
@@ -294,9 +412,107 @@
                 </table>
             </div>
 
+            <!-- Mobile Table View -->
+            <div class="md:hidden">
+                {% for vendor in vendors %}
+                <div class="mobile-table-row">
+                    <!-- Vendor Details -->
+                    <div class="mobile-table-cell" data-label="Vendor">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center mr-3 shadow-sm">
+                                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-gray-900">{{ vendor.name|default:"N/A" }}</div>
+                                <div class="text-xs text-indigo-600 font-medium">
+                                    {{ vendor.vendor_code|default:"No Code" }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact -->
+                    <div class="mobile-table-cell" data-label="Contact">
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">{{ vendor.email|default:"No Email" }}</div>
+                            <div class="text-xs text-gray-500">{{ vendor.phone|default:"No Phone" }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="mobile-table-cell" data-label="Status">
+                        {% if vendor.is_active %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <div class="w-1.5 h-1.5 bg-green-400 rounded-full mr-1.5"></div>
+                            Active
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            <div class="w-1.5 h-1.5 bg-red-400 rounded-full mr-1.5"></div>
+                            Inactive
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="mobile-table-cell mobile-actions" data-label="Actions">
+                        <div class="flex gap-2">
+                            <!-- Edit Button -->
+                            <a href="{% url 'vendor:edit_vendor' vendor.id %}"
+                                class="group relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-500 hover:to-indigo-600 rounded-xl transition-all duration-300 ease-out transform hover:scale-105 hover:shadow-xl shadow-lg border border-blue-100 hover:border-transparent"
+                                title="Edit vendor">
+                                <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                </div>
+                                <svg class="relative z-10 w-4 h-4 text-blue-600 group-hover:text-white transition-all duration-300 group-hover:rotate-12"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                    </path>
+                                </svg>
+                            </a>
+
+                            <!-- Delete Button -->
+                            <button onclick="confirmDelete('{{ vendor.id }}', '{{ vendor.name }}', '{% url 'vendor:delete_vendor' vendor.id %}')"
+                                class="group relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gradient-to-r from-red-50 to-rose-50 hover:from-red-500 hover:to-rose-600 rounded-xl transition-all duration-300 ease-out transform hover:scale-105 hover:shadow-xl shadow-lg border border-red-100 hover:border-transparent"
+                                title="Delete Vendor">
+                                <div class="absolute inset-0 bg-gradient-to-r from-red-400 to-rose-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                </div>
+                                <svg class="relative z-10 w-4 h-4 text-red-600 group-hover:text-white transition-all duration-300 group-hover:rotate-12"
+                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                    </path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="px-6 py-12 text-center">
+                    <div class="flex flex-col items-center">
+                        <svg class="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                            </path>
+                        </svg>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">No vendors found</h3>
+                        <p class="text-gray-500 mb-4">Get started by adding your first vendor</p>
+                        <button onclick="window.location.href='{% url 'vendor:add_vendor_manual' %}'"
+                            class="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200">
+                            Add Vendor
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
             <!-- Pagination -->
             {% if vendors.has_other_pages %}
-            <div class="bg-gradient-to-r from-slate-50 to-blue-50 px-8 py-6 border-t border-gray-100">
+            <div class="bg-gradient-to-r from-slate-50 to-blue-50 px-4 md:px-8 py-4 md:py-6 border-t border-gray-100">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div class="flex items-center gap-4">
                         <p class="text-sm text-gray-700 font-medium">
@@ -308,9 +524,9 @@
                         </p>
                     </div>
                     
-                    <nav class="flex items-center space-x-2">
+                    <nav class="flex items-center space-x-2 overflow-x-auto">
                         {% if vendors.has_previous %}
-                        <a href="?page={{ vendors.previous_page_number }}" class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200">
+                        <a href="?page={{ vendors.previous_page_number }}" class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200 whitespace-nowrap">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                             </svg>
@@ -321,15 +537,15 @@
                         <div class="flex items-center space-x-1">
                             {% for num in vendors.paginator.page_range %}
                                 {% if num == vendors.number %}
-                                    <span class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-medium rounded-lg shadow-sm">{{ num }}</span>
+                                    <span class="px-3 py-1 md:px-4 md:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-sm font-medium rounded-lg shadow-sm whitespace-nowrap">{{ num }}</span>
                                 {% else %}
-                                    <a href="?page={{ num }}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200">{{ num }}</a>
+                                    <a href="?page={{ num }}" class="px-3 py-1 md:px-4 md:py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200 whitespace-nowrap">{{ num }}</a>
                                 {% endif %}
                             {% endfor %}
                         </div>
                         
                         {% if vendors.has_next %}
-                        <a href="?page={{ vendors.next_page_number }}" class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200">
+                        <a href="?page={{ vendors.next_page_number }}" class="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors duration-200 whitespace-nowrap">
                             Next
                             <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -343,5 +559,41 @@
         </div>
     </div>
 </body>
+<script>
+    function confirmDelete(invoiceId, invoiceNumber, deleteUrl) {
+        if (confirm(`Are you sure you want to delete vendor "${invoiceNumber}"? This action cannot be undone.`)) {
+            // Create a form and submit it
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = deleteUrl;
+
+            // Try to get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfToken) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken.value;
+                form.appendChild(csrfInput);
+            } else {
+                // If no CSRF token found, try to get it from cookies
+                const csrfCookie = document.cookie.split(';').find(cookie => cookie.trim().startsWith('csrftoken='));
+                if (csrfCookie) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = csrfCookie.split('=')[1];
+                    form.appendChild(csrfInput);
+                } else {
+                    alert('CSRF token not found. Please refresh the page and try again.');
+                    return;
+                }
+            }
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
 </html>
 {% endblock %}
