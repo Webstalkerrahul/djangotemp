@@ -204,7 +204,7 @@ def add_vendor_manual(request):
     print("Add vendor page accessed")
     return render(request, "add_vendor.html")
 
-
+@csrf_exempt
 @login_required
 def edit_vendor(request, vendor_id):
     """
@@ -267,3 +267,71 @@ def delete_vendor(request, vendor_id):
     messages.success(request, f"Vendor '{vendor_name}' deleted successfully!")
     return redirect("vendor:display_vendors")
 
+@csrf_exempt
+@login_required
+def edit_plant(request, plant_id):
+    """
+    Edit an existing plant - GET shows the form, POST updates the plant.
+    """
+    plant = get_object_or_404(Plant, id=plant_id, user=request.user)
+    
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        vendor_id = request.POST.get("vendor")
+        email = request.POST.get("email", "").strip()
+        phone = request.POST.get("phone", "").strip()
+        address = request.POST.get("address", "").strip()
+        is_active = request.POST.get("is_active") == "on"
+        
+        # Validation
+        errors = []
+        if not name:
+            errors.append("Plant name is required.")
+        if not vendor_id:
+            errors.append("Please choose an associated vendor.")
+        else:
+            # confirm the vendor really belongs to the logged‑in user
+            try:
+                vendor = Vendor.objects.get(id=vendor_id, user=request.user)
+            except Vendor.DoesNotExist:
+                errors.append("Selected vendor was not found.")
+                vendor = None
+        
+        if errors:
+            vendors = Vendor.objects.filter(user=request.user)
+            return render(request, "edit_plant.html", {
+                "plant": plant,
+                "vendors": vendors,
+                "error": " ".join(errors)
+            })
+
+        # Update plant with all provided data
+        plant.name = name
+        plant.vendor = vendor
+        plant.email = email if email else None
+        plant.phone = phone
+        plant.address = address
+        plant.is_active = is_active
+        plant.save()
+        
+        messages.success(request, f"Plant '{plant.name}' updated successfully!")
+        return redirect("vendor:display_plants")
+    
+    # GET request - show the form with current plant data
+    vendors = Vendor.objects.filter(user=request.user)
+    return render(request, "edit_plant.html", {"plant": plant, "vendors": vendors})
+
+
+@csrf_exempt
+@login_required
+@require_http_methods(["POST"])
+def delete_plant(request, plant_id):
+    """
+    Delete a plant (POST only for security).
+    """
+    plant = get_object_or_404(Plant, id=plant_id, user=request.user)
+    plant_name = plant.name
+    
+    plant.delete()
+    messages.success(request, f"Plant '{plant_name}' deleted successfully!")
+    return redirect("vendor:display_plants")

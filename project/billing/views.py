@@ -286,10 +286,10 @@ def render_invoice_pdf(invoice, flag, gst_rate):
         invoice.pdf.name = full_path
         invoice.save(update_fields=["pdf"])
 
-        # Respond with inline PDF
+        # Return PDF response for download (remove the redirect)
         response = HttpResponse(pdf_data, content_type="application/pdf")
-        response["Content-Disposition"] = f'inline; filename="{pdf_filename}"'
-        return response
+        response["Content-Disposition"] = f'attachment; filename="{pdf_filename}"'  # Changed to 'attachment' for download
+        return response  # Return the PDF response instead of redirecting
 
     except Exception as e:
         import traceback

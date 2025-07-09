@@ -383,52 +383,76 @@
                                     <div class="text-xs text-gray-500">{{ invoice.created_at|timesince }} ago</div>
                                     {% endif %}
                                 </td>
+<!-- Actions column -->
+<td class="px-6 py-4 whitespace-nowrap text-right">
+    <div class="flex justify-end gap-2">
+        <!-- EDIT button -->
+        <a href="{% url 'billing:edit_invoice' invoice.id %}"
+            class="group relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-500 hover:to-indigo-600 rounded-xl transition-all duration-300 ease-out transform hover:scale-105 hover:shadow-xl shadow-lg border border-blue-100 hover:border-transparent"
+            title="Edit Invoice">
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <svg class="relative z-10 w-4 h-4 text-blue-600 group-hover:text-white transition-all duration-300 group-hover:rotate-12"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                </path>
+            </svg>
+            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400 to-indigo-500 opacity-0 group-hover:opacity-20 blur-lg transition-all duration-300"></div>
+        </a>
 
-                               <!-- Actions column -->
-                                <td class="px-6 py-4 whitespace-nowrap text-right">
-                                <div class="flex justify-end gap-2">
-                                    <!-- EDIT button -->
-                                    <a href="{% url 'billing:edit_invoice' invoice.id %}"
-                                    class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 group"
-                                    title="Edit Invoice">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                        </svg>
-                                    </a>
+        <!-- VIEW/DOWNLOAD buttons -->
+        {% if invoice.pdf %}
+            <!-- VIEW button -->
+            <a href="{{ invoice.pdf.url }}" target="_blank"
+                class="group relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-500 hover:to-purple-600 rounded-xl transition-all duration-300 ease-out transform hover:scale-105 hover:shadow-xl shadow-lg border border-indigo-100 hover:border-transparent"
+                title="View Invoice">
+                <div class="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <svg class="relative z-10 w-4 h-4 text-indigo-600 group-hover:text-white transition-all duration-300 group-hover:rotate-12"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                    </path>
+                </svg>
+                <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-400 to-purple-500 opacity-0 group-hover:opacity-20 blur-lg transition-all duration-300"></div>
+            </a>
+            
+            <!-- DOWNLOAD button -->
+            <a href="{{ invoice.pdf.url }}" download="{{ invoice.invoice_number }}.pdf"
+                class="group relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-500 hover:to-emerald-600 rounded-xl transition-all duration-300 ease-out transform hover:scale-105 hover:shadow-xl shadow-lg border border-green-100 hover:border-transparent"
+                title="Download Invoice">
+                <div class="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <svg class="relative z-10 w-4 h-4 text-green-600 group-hover:text-white transition-all duration-300 group-hover:rotate-12"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4">
+                    </path>
+                </svg>
+                <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-green-400 to-emerald-500 opacity-0 group-hover:opacity-20 blur-lg transition-all duration-300"></div>
+            </a>
+        {% else %}
+            <!-- No PDF placeholder -->
+            <div class="inline-flex items-center justify-center w-10 h-10 bg-gray-100 rounded-xl border border-gray-200">
+                <span class="text-gray-400 text-xs font-medium">PDF</span>
+            </div>
+        {% endif %}
 
-                                    <!-- VIEW/DOWNLOAD button -->
-                                    {% if invoice.pdf %}
-                                        <a href="{{ invoice.pdf.url }}" target="_blank"
-                                        class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors duration-200 group"
-                                        title="View Invoice">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                            </svg>
-                                        </a>
-                                        
-                                        <!-- DOWNLOAD button -->
-                                        <a href="{{ invoice.pdf.url }}" download="{{ invoice.invoice_number }}.pdf"
-                                        class="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200 group"
-                                        title="Download Invoice">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                                            </svg>
-                                        </a>
-                                    {% else %}
-                                        <span class="text-gray-400 italic text-xs">No PDF</span>
-                                    {% endif %}
-
-                                    <!-- DELETE button -->
-                                    <button onclick="confirmDelete('{{ invoice.id }}', '{{ invoice.invoice_number }}', '{% url 'billing:delete_invoice' invoice.id %}')"
-                                            class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 group"
-                                            title="Delete Invoice">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                                </td>
+        <!-- DELETE button -->
+        <button onclick="confirmDelete('{{ invoice.id }}', '{{ invoice.invoice_number }}', '{% url 'billing:delete_invoice' invoice.id %}')"
+            class="group relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gradient-to-r from-red-50 to-rose-50 hover:from-red-500 hover:to-rose-600 rounded-xl transition-all duration-300 ease-out transform hover:scale-105 hover:shadow-xl shadow-lg border border-red-100 hover:border-transparent"
+            title="Delete Invoice">
+            <div class="absolute inset-0 bg-gradient-to-r from-red-400 to-rose-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <svg class="relative z-10 w-4 h-4 text-red-600 group-hover:text-white transition-all duration-300 group-hover:rotate-12"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                </path>
+            </svg>
+            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-red-400 to-rose-500 opacity-0 group-hover:opacity-20 blur-lg transition-all duration-300"></div>
+        </button>
+    </div>
+</td>
 
                             </tr>
                             {% endfor %}
