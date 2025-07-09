@@ -25,8 +25,10 @@ from concurrent.futures import ThreadPoolExecutor
 from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.db.models import Sum, Count, Avg, Q
+from decimal import Decimal
+from django.db.models import Sum, Count, Avg, Q, Value, DecimalField
 from django.utils import timezone
+from django.db.models.functions import Coalesce
 from datetime import datetime, timedelta
 
 @login_required
@@ -358,7 +360,30 @@ def view_invoices(request):
     # Calculate averages and totals
     total_count = paginator.count
     avg_value = total / total_count if total_count > 0 else 0
-    
+
+    pending_invoices_count = invoices.filter(is_paid=False).count()
+    paid_invoices_count = invoices.filter(is_paid=True).count()
+    pending_net_total = (
+    invoices
+    .filter(is_paid=False)
+    .aggregate(
+                total=Coalesce(
+                    Sum('net_amount'),
+                    Value(Decimal('0'), output_field=DecimalField())   # ← cast to Decimal
+                )
+            )['total']
+        )
+    paid_net_total = (
+    invoices
+    .filter(is_paid=True)
+    .aggregate(
+                total=Coalesce(
+                    Sum('net_amount'),
+                    Value(Decimal('0'), output_field=DecimalField())   # ← cast to Decimal
+                )
+            )['total']
+        )
+ 
     data = {
         "invoices": invoices_page,
         "request": request,
@@ -366,7 +391,10 @@ def view_invoices(request):
         "avg_value": avg_value,
         "billing_stats": billing_stats,
         "total_invoices": total_count,
-        "pending_invoices": billing_stats.get('pending_count', 0),
+        "pending_invoices_count": pending_invoices_count,
+        "pending_net_total": pending_net_total,
+        "paid_invoices_count": paid_invoices_count,
+        "paid_net_total": paid_net_total,
         "paid_invoices": billing_stats.get('paid_count', 0),
         "pending_amount": billing_stats.get('pending_amount', 0),
     }

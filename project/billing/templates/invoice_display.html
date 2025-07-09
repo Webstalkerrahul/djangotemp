@@ -202,8 +202,8 @@
                     </div>
                     <div class="space-y-1">
                         <p class="text-sm font-medium text-gray-600">Pending Invoices</p>
-                        <h3 class="text-3xl font-bold number-counter">24</h3>
-                        <p class="text-xs text-gray-500">Worth ₹3,45,200</p>
+                        <h3 class="text-3xl font-bold number-counter">{{ pending_invoices_count }}</h3>
+                        <p class="text-xs text-gray-500">Worth ₹{{ pending_net_total }}</p>
                     </div>
                     <div class="mt-4 bg-gray-100 rounded-full h-2 overflow-hidden">
                         <div class="chart-bar bg-gradient-to-r from-amber-400 to-orange-500 h-full rounded-full" style="--bar-height: 100%; width: 45%;"></div>
@@ -225,8 +225,8 @@
                     </div>
                     <div class="space-y-1">
                         <p class="text-sm font-medium text-gray-600">Paid Invoices</p>
-                        <h3 class="text-3xl font-bold number-counter">156</h3>
-                        <p class="text-xs text-gray-500">This month</p>
+                        <h3 class="text-3xl font-bold number-counter">{{paid_invoices_count}}</h3>
+                        <p class="text-xs text-gray-500">Paid ₹{{paid_net_total}}</p>
                     </div>
                     <div class="mt-4 bg-gray-100 rounded-full h-2 overflow-hidden">
                         <div class="chart-bar bg-gradient-to-r from-blue-500 to-indigo-600 h-full rounded-full" style="--bar-height: 100%; width: 92%;"></div>
