@@ -487,7 +487,6 @@ def get_billing_statistics(user):
             'total_invoices': 0,
         }
 
-
 @csrf_exempt 
 def edit_invoice(request, invoice_id):
     """
@@ -501,102 +500,11 @@ def edit_invoice(request, invoice_id):
     ).select_related('vendor', 'plant', 'product', 'vehicle', 'company')
     
     if request.method == 'POST':
+        print("Editing invoice with ID:", invoice_id)
         try:
-            # Update main invoice fields
-            invoice.chalan_number = request.POST.get('chalan_number', '')
-            
-            # Update foreign key relationships if needed
-            vendor_id = request.POST.get('vendor')
-            if vendor_id:
-                invoice.vendor = get_object_or_404(Vendor, id=vendor_id)
-            
-            company_id = request.POST.get('company')
-            if company_id:
-                invoice.company = get_object_or_404(Company, id=company_id)
-            
-            plant_id = request.POST.get('plant')
-            if plant_id:
-                invoice.plant = get_object_or_404(Plant, id=plant_id)
-            
-            vehicle_id = request.POST.get('vehicle')
-            if vehicle_id:
-                invoice.vehicle = get_object_or_404(Vehicle, id=vehicle_id)
-            
-            product_id = request.POST.get('product')
-            if product_id:
-                invoice.product = get_object_or_404(Product, id=product_id)
-            
-            # Update numeric fields
-            invoice.quantity = float(request.POST.get('quantity', 0))
-            invoice.rate = float(request.POST.get('rate', 0))
-            invoice.net_amount = float(request.POST.get('net_amount', 0)) if request.POST.get('net_amount') else None
-            invoice.cgst = float(request.POST.get('cgst', 0)) if request.POST.get('cgst') else None
-            invoice.sgst = float(request.POST.get('sgst', 0)) if request.POST.get('sgst') else None
-            invoice.total_amount = float(request.POST.get('total_amount', 0))
-            
-            # Update date
-            from datetime import datetime
-            date_str = request.POST.get('date')
-            if date_str:
-                invoice.date = datetime.strptime(date_str, '%Y-%m-%d').date()
-            
-            # Handle line items updates
-            line_item_ids = request.POST.getlist('line_item_id[]')
-            line_item_chalans = request.POST.getlist('line_item_chalan[]')
-            line_item_dates = request.POST.getlist('line_item_date[]')
-            line_item_quantities = request.POST.getlist('line_item_quantity[]')
-            line_item_rates = request.POST.getlist('line_item_rate[]')
-            line_item_vehicles = request.POST.getlist('line_item_vehicle[]')
-            line_item_products = request.POST.getlist('line_item_product[]')
-            line_item_plants = request.POST.getlist('line_item_plant[]')
-            
-            # Update existing line items
-            for i, item_id in enumerate(line_item_ids):
-                if item_id:  # Existing item
-                    billing_item = get_object_or_404(Billing, id=item_id)
-                    billing_item.chalan_number = line_item_chalans[i]
-                    billing_item.date = datetime.strptime(line_item_dates[i], '%Y-%m-%d').date()
-                    billing_item.quantity = float(line_item_quantities[i])
-                    billing_item.rate = float(line_item_rates[i])
-                    
-                    if line_item_vehicles[i]:
-                        billing_item.vehicle = get_object_or_404(Vehicle, id=line_item_vehicles[i])
-                    if line_item_products[i]:
-                        billing_item.product = get_object_or_404(Product, id=line_item_products[i])
-                    if line_item_plants[i]:
-                        billing_item.plant = get_object_or_404(Plant, id=line_item_plants[i])
-                    
-                    billing_item.save()
-                else:  # New item
-                    if line_item_chalans[i]:  # Only create if chalan number exists
-                        Billing.objects.create(
-                            invoice_number=invoice.invoice_number,
-                            chalan_number=line_item_chalans[i],
-                            date=datetime.strptime(line_item_dates[i], '%Y-%m-%d').date(),
-                            quantity=float(line_item_quantities[i]),
-                            rate=float(line_item_rates[i]),
-                            vehicle_id=line_item_vehicles[i] if line_item_vehicles[i] else None,
-                            product_id=line_item_products[i] if line_item_products[i] else None,
-                            plant_id=line_item_plants[i] if line_item_plants[i] else None,
-                            vendor=invoice.vendor,
-                            company=invoice.company,
-                        )
-            
-            # Recalculate totals based on updated line items
-            updated_billing_items = Billing.objects.filter(invoice_number=invoice.invoice_number)
-            total_amount = sum(item.quantity * item.rate for item in updated_billing_items)
-            
-            # Update GST calculations
-            gst_rate = float(request.POST.get('gst_rate', 12))
-            cgst = total_amount * (gst_rate / 2) / 100
-            sgst = total_amount * (gst_rate / 2) / 100
-            net_amount = total_amount + cgst + sgst
-            
-            invoice.total_amount = total_amount
-            invoice.cgst = cgst
-            invoice.sgst = sgst
-            invoice.net_amount = net_amount
-            
+      
+            invoice.is_paid = request.POST.get('is_paid', '') in ('1', 'on', 'true')
+
             # Save the updated invoice
             invoice.save()
             

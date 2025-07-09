@@ -30,6 +30,7 @@ class Billing(models.Model):
     def __str__(self):
         return f'Invoice {self.invoice_number} - Amount: {self.rate}'
 
+
 class Invoice(models.Model):
     invoice_number = models.CharField(max_length=100, blank=True, null=True)
     rate = models.DecimalField(max_digits=10, decimal_places=2,blank=True, null=True)
@@ -49,7 +50,9 @@ class Invoice(models.Model):
     amount_in_words = models.CharField(max_length=300,blank=True, null=True)
     bank_details = models.ForeignKey(BankDetail, on_delete=models.PROTECT,blank=True, null=True)
     pdf = models.FileField(upload_to="invoices/", blank=True, null=True)
-    
+    is_paid = models.BooleanField(default=False, blank=True, null=True)
+
+    # Add payment status field
 
     def __str__(self):
         return f'Invoice {self.invoice_number}'
