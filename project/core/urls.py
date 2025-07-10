@@ -25,6 +25,7 @@ urlpatterns = [
     path("", views.home, name="home"),  # Home page URL
     path("dashboard/", core_views.dashboard, name="dashboard"),  # Home page URL
     path('vendor/', include('vendor.urls')),
+    path('vehicle/', include('vehicle.urls')),
 ]
 from django.conf import settings
 from django.conf.urls.static import static
