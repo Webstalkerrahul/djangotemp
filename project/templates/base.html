@@ -26,25 +26,12 @@
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    .dark .glass-effect {
-      background: rgba(0, 0, 0, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
     .gradient-bg {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
 
-    .dark .gradient-bg {
-      background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-    }
-
     .sidebar-gradient {
       background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-    }
-
-    .dark .sidebar-gradient {
-      background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
     }
 
     .hover-lift {
@@ -85,7 +72,6 @@
       50% { transform: translateY(-10px); }
     }
 
-
     .text-gradient {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       -webkit-background-clip: text;
@@ -103,16 +89,16 @@
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-all duration-500 min-h-screen">
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
 
-<!-- Header with Hamburger Menu and Theme Toggle -->
+<!-- Header with Hamburger Menu -->
 <div class="relative top-0 left-0 right-0 z-50 mb-0 glass-effect transition-all duration-500 shadow-lg">
   <div class="flex items-center justify-between p-4">
     <!-- Hamburger Menu Button -->
     <button 
       id="hamburger-toggle"
       type="button" 
-      class="inline-flex items-center p-3 text-sm text-gray-600 rounded-xl hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:text-gray-300 dark:hover:bg-gray-700/50 dark:focus:ring-blue-400/50 transition-all duration-300 hover-lift">
+      class="inline-flex items-center p-3 text-sm text-gray-600 rounded-xl hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300 hover-lift">
       <span class="sr-only">Open sidebar</span>
       <!-- Hamburger Icon -->
       <svg id="hamburger-icon" class="w-6 h-6 transition-transform duration-300" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -127,18 +113,8 @@
     <!-- Page Title -->
     <h1 class="text-2xl font-bold text-gradient">Welcome, {{user}}</h1>
 
-    <!-- Theme Toggle Button -->
-    <button id="theme-toggle" type="button" 
-      class="text-gray-600 dark:text-gray-300 hover:bg-white/20 dark:hover:bg-gray-700/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-blue-400/50 rounded-xl text-sm p-3 transition-all duration-300 hover-lift ">
-      <!-- Sun icon (for light mode) -->
-      <svg id="theme-toggle-light-icon" class="w-6 h-6 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
-      </svg>
-      <!-- Moon icon (for dark mode) -->
-      <svg id="theme-toggle-dark-icon" class="w-6 h-6 hidden transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-      </svg>
-    </button>
+    <!-- Empty div to maintain flex spacing (replacing theme toggle) -->
+    <div class="w-12"></div>
   </div>
 </div>
 
@@ -159,15 +135,14 @@
         </svg>
       </div>
       <div>
-        <h2 class="text-xl font-bold text-gray-800 dark:text-white">Genric Invoice</h2>
-        <!-- <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Professional Dashboard</p> -->
+        <h2 class="text-xl font-bold text-gray-800">Genric Invoice</h2>
       </div>
     </div>
 
     <!-- Navigation Menu -->
     <ul class="space-y-3 font-medium">
       <li>
-        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl dark:text-white hover:bg-white/50 dark:hover:bg-gray-700/50 group transition-all duration-300 hover-lift shadow-sm">
+        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl hover:bg-white/50 group transition-all duration-300 hover-lift shadow-sm">
           <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-5 h-5 text-white"
               fill="currentColor" viewBox="0 0 22 21" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -182,7 +157,7 @@
       <!-- Collapsible menu -->
       <li>
         <button type="button"
-          class="nav-item flex items-center w-full p-4 text-gray-800 rounded-2xl group hover:bg-white/50 dark:text-white dark:hover:bg-gray-700/50 transition-all duration-300 hover-lift shadow-sm"
+          class="nav-item flex items-center w-full p-4 text-gray-800 rounded-2xl group hover:bg-white/50 transition-all duration-300 hover-lift shadow-sm"
           aria-controls="dropdown-example" data-collapse-toggle="dropdown-example">
           <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-5 h-5 text-white"
@@ -200,14 +175,14 @@
         <ul id="dropdown-example" class="hidden py-2 space-y-2 ml-6 mt-2">
           <li>
             <a href="{% url 'billing:generate_invoice' %}"
-              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
+              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 hover-lift">
               <div class="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mr-3"></div>
               Generate Bill
             </a>
           </li>
           <li>
             <a href="{% url 'billing:view_invoices' %}"
-              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
+              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 hover-lift">
               <div class="w-2 h-2 bg-gradient-to-r from-orange-400 to-red-500 rounded-full mr-3"></div>
               Invoice
             </a>
@@ -218,7 +193,7 @@
        <!-- Collapsible Vender Plant management menu -->
       <li>
         <button type="button"
-          class="nav-item flex items-center w-full p-4 text-gray-800 rounded-2xl group hover:bg-white/50 dark:text-white dark:hover:bg-gray-700/50 transition-all duration-300 hover-lift shadow-sm"
+          class="nav-item flex items-center w-full p-4 text-gray-800 rounded-2xl group hover:bg-white/50 transition-all duration-300 hover-lift shadow-sm"
           aria-controls=""vendor-plant" data-collapse-toggle="vendor-plant">
           <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="size-6">
@@ -235,14 +210,14 @@
         <ul id="vendor-plant" class="hidden py-2 space-y-2 ml-6 mt-2">
           <li>
             <a href="{% url 'vendor:display_vendors' %}"
-              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
+              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 hover-lift">
               <div class="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mr-3"></div>
               Vendors
             </a>
           </li>
           <li>
             <a href="{% url 'vendor:display_plants' %}"
-              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 dark:text-gray-300 dark:hover:bg-gray-700/40 hover-lift">
+              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 hover-lift">
               <div class="w-2 h-2 bg-gradient-to-r from-green-400 to-teal-500 rounded-full mr-3"></div>
               Plants
             </a>
@@ -250,9 +225,43 @@
         </ul>
       </li>
 
+       <li>
+        <button type="button"
+          class="nav-item flex items-center w-full p-4 text-gray-800 rounded-2xl group hover:bg-white/50 transition-all duration-300 hover-lift shadow-sm"
+          aria-controls=""fleet" data-collapse-toggle="fleet">
+          <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-cyan-400 to-cyan-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
+          <svg class="w-6 h-6 text-white-100" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="white" viewBox="0 0 24 24">
+  <path fill-rule="evenodd" d="M4 4a2 2 0 0 0-2 2v9a1 1 0 0 0 1 1h.535a3.5 3.5 0 1 0 6.93 0h3.07a3.5 3.5 0 1 0 6.93 0H21a1 1 0 0 0 1-1v-4a.999.999 0 0 0-.106-.447l-2-4A1 1 0 0 0 19 6h-5a2 2 0 0 0-2-2H4Zm14.192 11.59.016.02a1.5 1.5 0 1 1-.016-.021Zm-10 0 .016.02a1.5 1.5 0 1 1-.016-.021Zm5.806-5.572v-2.02h4.396l1 2.02h-5.396Z" clip-rule="evenodd"/>
+</svg>
+
+          </div>
+          <span class="flex-1 text-left font-semibold">Fleet Management</span>
+          <svg class="w-4 h-4 transition-transform duration-300 group-hover:rotate-180" fill="none" viewBox="0 0 10 6" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m1 1 4 4 4-4" />
+          </svg>
+        </button>
+        <ul id="fleet" class="hidden py-2 space-y-2 ml-6 mt-2">
+          <li>
+            <a href="{% url 'vehicles:vehicle_list' %}"
+              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 hover-lift">
+              <div class="w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full mr-3"></div>
+              Vehicles
+            </a>
+          </li>
+          <!--<li>
+            <a href="{% url 'vendor:display_plants' %}"
+              class="flex items-center w-full p-3 text-gray-700 transition-all duration-300 rounded-xl hover:bg-white/40 hover-lift">
+              <div class="w-2 h-2 bg-gradient-to-r from-green-400 to-teal-500 rounded-full mr-3"></div>
+              Plants
+            </a>
+          </li>-->
+        </ul>
+      </li>
+
       <!-- More sidebar links -->
       <li>
-        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl dark:text-white hover:bg-white/50 dark:hover:bg-gray-700/50 group transition-all duration-300 hover-lift shadow-sm">
+        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl hover:bg-white/50 group transition-all duration-300 hover-lift shadow-sm">
           <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-5 h-5 text-white"
               fill="currentColor" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -265,7 +274,7 @@
       </li>
 
       <li>
-        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl dark:text-white hover:bg-white/50 dark:hover:bg-gray-700/50 group transition-all duration-300 hover-lift shadow-sm">
+        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl hover:bg-white/50 group transition-all duration-300 hover-lift shadow-sm">
           <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-5 h-5 text-white"
               fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -277,7 +286,7 @@
       </li>
 
       <li>
-        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl dark:text-white hover:bg-white/50 dark:hover:bg-gray-700/50 group transition-all duration-300 hover-lift shadow-sm">
+        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl hover:bg-white/50 group transition-all duration-300 hover-lift shadow-sm">
           <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-teal-400 to-teal-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-5 h-5 text-white"
               fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -289,7 +298,7 @@
       </li>
 
       <li>
-        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl dark:text-white hover:bg-white/50 dark:hover:bg-gray-700/50 group transition-all duration-300 hover-lift shadow-sm">
+        <a href="#" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl hover:bg-white/50 group transition-all duration-300 hover-lift shadow-sm">
           <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-5 h-5 text-white"
               fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -301,7 +310,7 @@
       </li>
 
        <li>
-        <a href="{% url 'logout' %}" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl dark:text-white hover:bg-red-50 dark:hover:bg-red-900/20 group transition-all duration-300 hover-lift shadow-sm">
+        <a href="{% url 'logout' %}" class="nav-item flex items-center p-4 text-gray-800 rounded-2xl hover:bg-red-50 group transition-all duration-300 hover-lift shadow-sm">
           <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-red-400 to-red-600 rounded-xl mr-4 group-hover:scale-110 transition-transform duration-300">
             <svg class="w-5 h-5 text-white"
               fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -326,8 +335,8 @@
         <div class="glass-effect p-6 rounded-2xl hover-lift">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
-              <p class="text-3xl font-bold text-gray-900 dark:text-white">2,543</p>
+              <p class="text-sm font-medium text-gray-600">Total Users</p>
+              <p class="text-3xl font-bold text-gray-900">2,543</p>
             </div>
             <div class="p-3 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl">
               <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -340,8 +349,8 @@
         <div class="glass-effect p-6 rounded-2xl hover-lift">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Revenue</p>
-              <p class="text-3xl font-bold text-gray-900 dark:text-white">$45,265</p>
+              <p class="text-sm font-medium text-gray-600">Revenue</p>
+              <p class="text-3xl font-bold text-gray-900">$45,265</p>
             </div>
             <div class="p-3 bg-gradient-to-br from-green-400 to-green-600 rounded-xl">
               <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -354,12 +363,12 @@
         <div class="glass-effect p-6 rounded-2xl hover-lift">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Orders</p>
-              <p class="text-3xl font-bold text-gray-900 dark:text-white">1,428</p>
+              <p class="text-sm font-medium text-gray-600">Orders</p>
+              <p class="text-3xl font-bold text-gray-900">1,428</p>
             </div>
             <div class="p-3 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl">
               <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 2L3 7v11a1 1 0 001 1h12a1 1 0 001-1V7l-7-5z" clip-rule="evenodd"></path>
+                <path fill-rule="evenodd" d="M10 2L3 7v11a1 1 0 001 1h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V7l-7-5z" clip-rule="evenodd"></path>
               </svg>
             </div>
           </div>
@@ -368,8 +377,8 @@
         <div class="glass-effect p-6 rounded-2xl hover-lift">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Growth</p>
-              <p class="text-3xl font-bold text-gray-900 dark:text-white">+12.5%</p>
+              <p class="text-sm font-medium text-gray-600">Growth</p>
+              <p class="text-3xl font-bold text-gray-900">+12.5%</p>
             </div>
             <div class="p-3 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl">
               <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -382,16 +391,16 @@
 
       <!-- Chart Section -->
       <div class="glass-effect p-8 rounded-2xl mb-8 hover-lift">
-        <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Analytics Overview</h3>
-        <div class="h-64 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-xl flex items-center justify-center">
-          <p class="text-gray-500 dark:text-gray-400 text-lg">Chart placeholder - Your analytics will appear here</p>
+        <h3 class="text-2xl font-bold text-gray-900 mb-6">Analytics Overview</h3>
+        <div class="h-64 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl flex items-center justify-center">
+          <p class="text-gray-500 text-lg">Chart placeholder - Your analytics will appear here</p>
         </div>
       </div>
 
       <!-- Recent Activity -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="glass-effect p-6 rounded-2xl hover-lift">
-          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Recent Activity</h3>
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Recent Activity</h3>
           <div class="space-y-4">
             <div class="flex items-center space-x-4">
               <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
@@ -400,8 +409,8 @@
                 </svg>
               </div>
               <div>
-                <p class="font-semibold text-gray-900 dark:text-white">New order completed</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">2 minutes ago</p>
+                <p class="font-semibold text-gray-900">New order completed</p>
+                <p class="text-sm text-gray-500">2 minutes ago</p>
               </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -411,8 +420,8 @@
                 </svg>
               </div>
               <div>
-                <p class="font-semibold text-gray-900 dark:text-white">New user registered</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">5 minutes ago</p>
+                <p class="font-semibold text-gray-900">New user registered</p>
+                <p class="text-sm text-gray-500">5 minutes ago</p>
               </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -422,15 +431,15 @@
                 </svg>
               </div>
               <div>
-                <p class="font-semibold text-gray-900 dark:text-white">Payment received</p>
-                <p class="text-sm text-gray-500 dark:text-gray-400">10 minutes ago</p>
+                <p class="font-semibold text-gray-900">Payment received</p>
+                <p class="text-sm text-gray-500">10 minutes ago</p>
               </div>
             </div>
           </div>
         </div>
 
         <div class="glass-effect p-6 rounded-2xl hover-lift">
-          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Quick Actions</h3>
+          <h3 class="text-xl font-bold text-gray-900 mb-4">Quick Actions</h3>
           <div class="grid grid-cols-2 gap-4">
             <button class="p-4 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover-lift shadow-lg">
               <svg class="w-8 h-8 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
@@ -465,43 +474,6 @@
 </div>
 
 <script>
-// Theme toggle functionality
-const themeToggleBtn = document.getElementById('theme-toggle');
-const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
-
-// Check for saved theme preference or default to 'light' mode
-const currentTheme = 'light'; // Default to light theme
-
-if (currentTheme === 'dark') {
-    document.documentElement.classList.add('dark');
-    themeToggleLightIcon.classList.add('hidden');
-    themeToggleDarkIcon.classList.remove('hidden');
-} else {
-    document.documentElement.classList.remove('dark');
-    themeToggleLightIcon.classList.remove('hidden');
-    themeToggleDarkIcon.classList.add('hidden');
-}
-
-themeToggleBtn.addEventListener('click', function() {
-    // Add rotation animation to button
-    themeToggleBtn.style.transform = 'rotate(360deg)';
-    setTimeout(() => {
-        themeToggleBtn.style.transform = 'rotate(0deg)';
-    }, 300);
-
-    // Toggle icons with fade effect
-    themeToggleDarkIcon.classList.toggle('hidden');
-    themeToggleLightIcon.classList.toggle('hidden');
-
-    // Toggle dark mode
-    if (document.documentElement.classList.contains('dark')) {
-        document.documentElement.classList.remove('dark');
-    } else {
-        document.documentElement.classList.add('dark');
-    }
-});
-
 // Hamburger menu functionality
 const hamburgerToggle = document.getElementById('hamburger-toggle');
 const sidebar = document.getElementById('sidebar-multi-level-sidebar');

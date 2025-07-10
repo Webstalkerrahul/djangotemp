@@ -1,0 +1,620 @@
+{% extends "base.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .hover-lift {
+            transition: all 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.15), 0 15px 15px -5px rgba(0, 0, 0, 0.08);
+        }
+        .status-badge {
+            animation: pulse 2s infinite;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+        .search-focus:focus {
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            border-color: #6366f1;
+        }
+        .row-hover:hover {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.02) 0%, rgba(255, 255, 255, 0.05) 100%);
+        }
+        
+        .main-container {
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            padding: 1rem;
+        }
+        
+        @media (min-width: 1024px) {
+            .main-container {
+                padding: 2rem;
+            }
+        }
+        
+        @media (min-width: 1280px) {
+            .main-container {
+                padding: 2rem 3rem;
+            }
+        }
+        
+        .content-wrapper {
+            padding-top: 1rem;
+            min-height: 100vh;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .number-counter {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .chart-bar {
+            animation: growBar 2s ease-out forwards;
+        }
+
+        @keyframes growBar {
+            from { width: 0; }
+            to { width: var(--bar-width); }
+        }
+
+        .floating-icon {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 1280px) {
+            .summary-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .vehicle-icon {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    {% csrf_token %}
+    <div class="content-wrapper">
+        <div class="main-container">
+            <!-- Header Section -->
+            <div class="mb-8 fade-in-up">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                            Vehicle Management
+                        </h1>
+                        <p class="text-gray-600">Manage and track your vehicle fleet</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-white rounded-2xl px-6 py-3 shadow-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                                <span class="text-sm font-medium text-gray-700">{{ vehicles.paginator.count }} Active Vehicles</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Summary Cards Grid -->
+            <div class="summary-grid mb-8 fade-in-up" style="animation-delay: 0.1s;">
+                <!-- Total Vehicles Card -->
+                <div class="metric-card rounded-2xl p-6 card-shadow hover-lift border border-gray-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-gradient-to-br from-blue-500 to-indigo-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg floating-icon">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex items-center space-x-1 text-blue-600 text-xs font-medium bg-blue-50 px-2 py-1 rounded-full">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
+                            </svg>
+                            <span>Fleet</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-sm font-medium text-gray-600">Total Vehicles</p>
+                        <h3 class="text-3xl font-bold number-counter">{{ total_vehicles }}</h3>
+                        <p class="text-xs text-gray-500">Active fleet</p>
+                    </div>
+                    <div class="mt-4 bg-gray-100 rounded-full h-2 overflow-hidden">
+                        <div class="chart-bar bg-gradient-to-r from-blue-500 to-indigo-600 h-full rounded-full" style="--bar-width: 100%; width: 100%;"></div>
+                    </div>
+                </div>
+
+                <!-- Vehicle Makes Card -->
+                <div class="metric-card rounded-2xl p-6 card-shadow hover-lift border border-gray-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-gradient-to-br from-emerald-500 to-teal-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg floating-icon" style="animation-delay: 0.5s;">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                        </div>
+                        <div class="flex items-center space-x-1 text-emerald-600 text-xs font-medium bg-emerald-50 px-2 py-1 rounded-full">
+                            <div class="w-2 h-2 bg-emerald-400 rounded-full"></div>
+                            <span>Brands</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-sm font-medium text-gray-600">Vehicle Makes</p>
+                        <h3 class="text-3xl font-bold number-counter">{{ unique_makes }}</h3>
+                        <p class="text-xs text-gray-500">Different brands</p>
+                    </div>
+                    <div class="mt-4 bg-gray-100 rounded-full h-2 overflow-hidden">
+                        <div class="chart-bar bg-gradient-to-r from-emerald-500 to-teal-600 h-full rounded-full" style="--bar-width: 75%; width: 75%;"></div>
+                    </div>
+                </div>
+
+                <!-- Recent Additions Card -->
+                <div class="metric-card rounded-2xl p-6 card-shadow hover-lift border border-gray-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-gradient-to-br from-purple-500 to-pink-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg floating-icon" style="animation-delay: 1s;">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div class="flex items-center space-x-1 text-purple-600 text-xs font-medium bg-purple-50 px-2 py-1 rounded-full">
+                            <div class="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                            <span>Recent</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-sm font-medium text-gray-600">This Month</p>
+                        <h3 class="text-3xl font-bold number-counter">{{ recent_vehicles }}</h3>
+                        <p class="text-xs text-gray-500">New additions</p>
+                    </div>
+                    <div class="mt-4 bg-gray-100 rounded-full h-2 overflow-hidden">
+                        <div class="chart-bar bg-gradient-to-r from-purple-500 to-pink-600 h-full rounded-full" style="--bar-width: 45%; width: 45%;"></div>
+                    </div>
+                </div>
+
+                <!-- Vehicle Models Card -->
+                <div class="metric-card rounded-2xl p-6 card-shadow hover-lift border border-gray-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="bg-gradient-to-br from-orange-500 to-red-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg floating-icon" style="animation-delay: 1.5s;">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2zm0 0V3a2 2 0 012-2h2a2 2 0 012 2v2m-6 0h6m0 0v6a2 2 0 01-2 2h-2a2 2 0 01-2-2V7"></path>
+                            </svg>
+                        </div>
+                        <div class="flex items-center space-x-1 text-orange-600 text-xs font-medium bg-orange-50 px-2 py-1 rounded-full">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                            <span>Models</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-sm font-medium text-gray-600">Vehicle Models</p>
+                        <h3 class="text-3xl font-bold number-counter">{{ unique_models }}</h3>
+                        <p class="text-xs text-gray-500">Different models</p>
+                    </div>
+                    <div class="mt-4 bg-gray-100 rounded-full h-2 overflow-hidden">
+                        <div class="chart-bar bg-gradient-to-r from-orange-500 to-red-600 h-full rounded-full" style="--bar-width: 60%; width: 60%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Card -->
+            <div class="bg-white rounded-3xl card-shadow overflow-hidden fade-in-up w-full" style="animation-delay: 0.2s;">
+                <!-- Search and Filter Header -->
+                <div class="bg-gradient-to-r from-slate-50 to-blue-50 px-8 py-6 border-b border-gray-100">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <!-- Search Bar -->
+                        <div class="relative flex-1 max-w-md">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                            <input type="text" 
+                                   class="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm placeholder-gray-500 search-focus transition-all duration-200" 
+                                   placeholder="Search by vehicle number, make, or model...">
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="flex gap-3">
+                            <button class="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-all duration-200 flex items-center gap-2 shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                                </svg>
+                                Filter
+                            </button>
+                            <button onclick="window.location.href='{% url 'vehicles:add_vehicle' %}'" class="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow-lg">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Add Vehicle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-100">
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Vehicle Details</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Make & Model</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Vehicle Number</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Owner</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Added</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Last Updated</th>
+                                <th class="px-6 py-4 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-50">
+                            {% for vehicle in vehicles %}
+                            <tr class="row-hover transition-all duration-200 hover-lift">
+                                <!-- Vehicle Details -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center mr-4 shadow-sm">
+                                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-bold text-gray-900">{{ vehicle.number|default:"N/A" }}</div>
+                                            <div class="text-xs text-gray-500">Vehicle ID: #{{ vehicle.id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- Make & Model -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-semibold text-gray-900">{{ vehicle.make|default:"N/A" }}</div>
+                                    <div class="text-xs text-gray-500">{{ vehicle.model|default:"N/A" }}</div>
+                                </td>
+
+                                <!-- Vehicle Number -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-800 border border-blue-200">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        {{ vehicle.number|default:"Unregistered" }}
+                                    </div>
+                                </td>
+
+                                <!-- Owner -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ vehicle.user.username|default:"N/A" }}</div>
+                                    {% if vehicle.user.first_name or vehicle.user.last_name %}
+                                    <div class="text-xs text-gray-500">{{ vehicle.user.first_name }} {{ vehicle.user.last_name }}</div>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Added Date -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ vehicle.created_at|date:"M d, Y" }}</div>
+                                    <div class="text-xs text-gray-500">{{ vehicle.created_at|timesince }} ago</div>
+                                </td>
+
+                                <!-- Last Updated -->
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ vehicle.updated_at|date:"M d, Y" }}</div>
+                                    <div class="text-xs text-gray-500">{{ vehicle.updated_at|timesince }} ago</div>
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <div class="flex justify-end gap-2">
+                                        <!-- EDIT button -->
+                                        <a href="{% url 'vehicles:edit_vehicle' vehicle.id %}"
+                                            class="group relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-500 hover:to-indigo-600 rounded-xl transition-all duration-300 ease-out transform hover:scale-105 hover:shadow-xl shadow-lg border border-blue-100 hover:border-transparent"
+                                            title="Edit Vehicle">
+                                            <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                            <svg class="relative z-10 w-4 h-4 text-blue-600 group-hover:text-white transition-all duration-300 group-hover:rotate-12"
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                                </path>
+                                            </svg>
+                                            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400 to-indigo-500 opacity-0 group-hover:opacity-20 blur-lg transition-all duration-300"></div>
+                                        </a>
+
+                                        <!-- VIEW button -->
+                                        <a href="{% url 'vehicles:view_vehicle' vehicle.id %}"
+                                            class="group relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-500 hover:to-purple-600 rounded-xl transition-all duration-300 ease-out transform hover:scale-105 hover:shadow-xl shadow-lg border border-indigo-100 hover:border-transparent"
+                                            title="View Vehicle">
+                                            <div class="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                            <svg class="relative z-10 w-4 h-4 text-indigo-600 group-hover:text-white transition-all duration-300 group-hover:rotate-12"
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                                </path>
+                                            </svg>
+                                            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-400 to-purple-500 opacity-0 group-hover:opacity-20 blur-lg transition-all duration-300"></div>
+                                        </a>
+
+                                        <!-- DELETE button -->
+                                        <button onclick="confirmDelete('{{ vehicle.id }}', '{{ vehicle.number }}', '{% url 'vehicles:delete_vehicle' vehicle.id %}')"
+                                            class="group relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gradient-to-r from-red-50 to-rose-50 hover:from-red-500 hover:to-rose-600 rounded-xl transition-all duration-300 ease-out transform hover:scale-105 hover:shadow-xl shadow-lg border border-red-100 hover:border-transparent"
+                                            title="Delete Vehicle">
+                                            <div class="absolute inset-0 bg-gradient-to-r from-red-400 to-rose-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                            <svg class="relative z-10 w-4 h-4 text-red-600 group-hover:text-white transition-all duration-300 group-hover:rotate-12"
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                </path>
+                                            </svg>
+                                            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-red-400 to-rose-500 opacity-0 group-hover:opacity-20 blur-lg transition-all duration-300"></div>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="px-6 py-16 text-center">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <div class="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mb-4">
+                                            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                        </div>
+                                        <h3 class="text-lg font-semibold text-gray-900 mb-2">No vehicles found</h3>
+                                        <p class="text-gray-500 mb-6">Get started by adding your first vehicle to the system.</p>
+                                        <button onclick="window.location.href='{% url 'vehicles:add_vehicle' %}'" class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow-lg">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                            </svg>
+                                            Add Your First Vehicle
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if vehicles.has_other_pages %}
+                <div class="bg-gradient-to-r from-slate-50 to-blue-50 px-8 py-6 border-t border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2 text-sm text-gray-600">
+                            <span>Showing</span>
+                            <span class="font-semibold text-gray-900">{{ vehicles.start_index }}</span>
+                            <span>to</span>
+                            <span class="font-semibold text-gray-900">{{ vehicles.end_index }}</span>
+                            <span>of</span>
+                            <span class="font-semibold text-gray-900">{{ vehicles.paginator.count }}</span>
+                            <span>results</span>
+                        </div>
+                        
+                        <div class="flex items-center space-x-2">
+                            {% if vehicles.has_previous %}
+                                <a href="?page={{ vehicles.previous_page_number }}" class="px-3 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                    </svg>
+                                    Previous
+                                </a>
+                            {% endif %}
+                            
+                            {% for num in vehicles.paginator.page_range %}
+                                {% if vehicles.number == num %}
+                                    <span class="px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-semibold">{{ num }}</span>
+                                {% elif num > vehicles.number|add:'-3' and num < vehicles.number|add:'3' %}
+                                    <a href="?page={{ num }}" class="px-3 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-all duration-200">{{ num }}</a>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if vehicles.has_next %}
+                                <a href="?page={{ vehicles.next_page_number }}" class="px-3 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center gap-1">
+                                    Next
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl transform transition-all duration-300 scale-95">
+            <div class="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-6">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.99-.833-2.76 0L4.054 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-gray-900 text-center mb-2">Delete Vehicle</h3>
+            <p class="text-gray-600 text-center mb-6">Are you sure you want to delete vehicle <span id="vehicleNumber" class="font-semibold text-gray-900"></span>? This action cannot be undone.</p>
+            <div class="flex gap-4">
+                <button onclick="closeDeleteModal()" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium">
+                    Cancel
+                </button>
+                <form id="deleteForm" method="post" class="flex-1">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full px-4 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl hover:from-red-700 hover:to-rose-700 transition-all duration-200 font-medium">
+                        Delete Vehicle
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Delete confirmation functionality
+        function confirmDelete(vehicleId, vehicleNumber, deleteUrl) {
+            document.getElementById('vehicleNumber').textContent = vehicleNumber;
+            document.getElementById('deleteForm').action = deleteUrl;
+            document.getElementById('deleteModal').classList.remove('hidden');
+            document.getElementById('deleteModal').classList.add('flex');
+            
+            // Add scale animation
+            setTimeout(() => {
+                document.querySelector('#deleteModal > div').classList.remove('scale-95');
+                document.querySelector('#deleteModal > div').classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            const modalContent = document.querySelector('#deleteModal > div');
+            
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+
+        // Search functionality
+        document.querySelector('input[type="text"]').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const vehicleNumber = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                const make = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const model = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                
+                if (vehicleNumber.includes(searchTerm) || make.includes(searchTerm) || model.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Add loading states for action buttons
+        document.querySelectorAll('a[href*="edit"], a[href*="view"]').forEach(link => {
+            link.addEventListener('click', function() {
+                const svg = this.querySelector('svg');
+                svg.classList.add('animate-spin');
+            });
+        });
+
+        // Smooth scroll to top functionality
+        window.addEventListener('scroll', function() {
+            const scrollButton = document.getElementById('scrollToTop');
+            if (scrollButton) {
+                if (window.pageYOffset > 300) {
+                    scrollButton.classList.remove('hidden');
+                } else {
+                    scrollButton.classList.add('hidden');
+                }
+            }
+        });
+
+        // Enhanced table interactions
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(4px)';
+            });
+            
+            row.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateX(0)';
+            });
+        });
+
+        // Animate counters on page load
+        function animateCounters() {
+            const counters = document.querySelectorAll('.number-counter');
+            counters.forEach(counter => {
+                const target = parseInt(counter.textContent);
+                const increment = target / 20;
+                let current = 0;
+                
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    counter.textContent = Math.floor(current);
+                }, 100);
+            });
+        }
+
+        // Initialize animations on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(animateCounters, 500);
+        });
+    </script>
+</body>
+</html>
+{% endblock %}
