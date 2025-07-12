@@ -721,41 +721,41 @@ function validateForm() {
                 }
             }
             
-            // Validate line items
-            const lineItems = document.querySelectorAll('#lineItemsTable tr');
-            if (lineItems.length === 0) {
-                showNotification('Please add at least one line item', 'error');
-                return false;
-            }
+            // // Validate line items
+            // const lineItems = document.querySelectorAll('#lineItemsTable tr');
+            // if (lineItems.length === 0) {
+            //     showNotification('Please add at least one line item', 'error');
+            //     return false;
+            // }
             
-            // Validate each line item
-            for (let i = 0; i < lineItems.length; i++) {
-                const row = lineItems[i];
-                const quantity = row.querySelector('.quantity-input');
-                const rate = row.querySelector('.rate-input');
-                const product = row.querySelector('select[name="line_item_product[]"]');
+        //     // Validate each line item
+        //     for (let i = 0; i < lineItems.length; i++) {
+        //         const row = lineItems[i];
+        //         const quantity = row.querySelector('.quantity-input');
+        //         const rate = row.querySelector('.rate-input');
+        //         const product = row.querySelector('select[name="line_item_product[]"]');
                 
-                if (!quantity || !quantity.value || parseFloat(quantity.value) <= 0) {
-                    showNotification(`Line item ${i + 1}: Please enter a valid quantity`, 'error');
-                    quantity.focus();
-                    return false;
-                }
+        //         if (!quantity || !quantity.value || parseFloat(quantity.value) <= 0) {
+        //             showNotification(`Line item ${i + 1}: Please enter a valid quantity`, 'error');
+        //             quantity.focus();
+        //             return false;
+        //         }
                 
-                if (!rate || !rate.value || parseFloat(rate.value) <= 0) {
-                    showNotification(`Line item ${i + 1}: Please enter a valid rate`, 'error');
-                    rate.focus();
-                    return false;
-                }
+        //         if (!rate || !rate.value || parseFloat(rate.value) <= 0) {
+        //             showNotification(`Line item ${i + 1}: Please enter a valid rate`, 'error');
+        //             rate.focus();
+        //             return false;
+        //         }
                 
-                if (!product || !product.value) {
-                    showNotification(`Line item ${i + 1}: Please select a product`, 'error');
-                    product.focus();
-                    return false;
-                }
-            }
+        //         if (!product || !product.value) {
+        //             showNotification(`Line item ${i + 1}: Please select a product`, 'error');
+        //             product.focus();
+        //             return false;
+        //         }
+        //     }
             
-            return true;
-        }
+        //     return true;
+        // }
 
         // Form Submission
         document.getElementById('editInvoiceForm').addEventListener('submit', function(e) {
